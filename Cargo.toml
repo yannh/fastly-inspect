@@ -1,5 +1,5 @@
 [package]
-name = "fastly-debug-rust"
+name = "fastly-inspect"
 version = "0.1.0"
 authors = ["Yann Hamon <yann@mandragor.org>"]
 edition = "2021"

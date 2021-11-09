@@ -2,16 +2,11 @@
 // Which, export default's, an initialization function
 import wasmInit, {
   run
-} from "./pkg/fastly_debug_rust.js";
+} from "./pkg/fastly_inspect.js";
 
 const runWasm = async () => {
-  // Instantiate our wasm module
-  const helloWorld = await wasmInit("./pkg/fastly_debug_rust_bg.wasm");
-
-  // Call the Add function export from wasm, save the result
-  const addResult = await run();
-
-  // Set the result onto the body
-  document.body.textContent = JSON.stringify(addResult);
+  const helloWorld = await wasmInit("./pkg/fastly_inspect_bg.wasm");
+  document.body.textContent = JSON.stringify(await run());
 };
+
 runWasm();
