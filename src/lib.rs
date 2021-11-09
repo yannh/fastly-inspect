@@ -11,11 +11,20 @@ use wasm_bindgen::JsCast;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugInfo {
     pub dns_resolver_info: DnsResolverInfo,
+    pub client_ip_info: ClientIpInfo,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DnsResolverInfo {
     pub ip: String,
+    pub as_name: String,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ClientIpInfo {
+    pub ip: String,
+    pub as_name: String,
 }
 
 // Let's define our external function (imported from JS)
