@@ -38,7 +38,7 @@ pub async fn run() -> Result<JsValue, JsValue> {
 
     request
         .headers()
-        .set("Accept", "application/vnd.github.v3+json")?;
+        .set("Accept", "application/json")?;
 
     let window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
