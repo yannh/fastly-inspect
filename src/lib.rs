@@ -18,6 +18,8 @@ pub struct DebugInfo {
 pub struct DnsResolverInfo {
     pub ip: String,
     pub as_name: String,
+    pub as_number: String,
+    pub cc: String,
 }
 
 
@@ -25,6 +27,7 @@ pub struct DnsResolverInfo {
 pub struct ClientIpInfo {
     pub ip: String,
     pub as_name: String,
+    pub as_number: String,
 }
 
 // Let's define our external function (imported from JS)
