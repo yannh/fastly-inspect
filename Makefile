@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-.PHONY: build build-wasm build-binary output
+.PHONY: build build-wasm build-binary site
 
 build: build-binary build-wasm
 
@@ -13,4 +13,4 @@ build-binary:
 site:
 	mkdir -p output/lib
 	cp index.html output/
-	cp pkg/fastly_inspect_bg.wasm pkg/fastly_inspect.js  output/lib
+	cp index.js pkg/fastly_inspect_bg.wasm pkg/fastly_inspect.js  output/lib
