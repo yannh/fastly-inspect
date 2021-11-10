@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Yann Hamon <yann@mandragor.org>"]
 edition = "2021"
 
+[[bin]]
+name = "fastly-inspect"
+
 [lib]
 crate-type = ["cdylib"]
 
@@ -13,15 +16,21 @@ js-sys = "0.3.55"
 wasm-bindgen-futures = "0.4.28"
 serde = { version = "1.0.80", features = ["derive"] }
 serde_derive = "^1.0.59"
+http-types = "^2.12.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.surf]
+version = "2.3.2"
+default-features = false
+features = ["wasm-client", "middleware-logger"]
 
 [dependencies.web-sys]
 version = "0.3.4"
 features = [
-  'Headers',
-  'Request',
-  'RequestInit',
-  'RequestMode',
-  'Response',
-  'Window',
+	'Headers',
+	'Request',
+	'RequestInit',
+	'RequestMode',
+	'Response',
+	'Window',
 ]
 

@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
-use wasm_bindgen::JsCast;
-
+use web_sys::{RequestInit, RequestMode};
+use surf::http::{Method, Url};
 /// A struct to hold some data from the github Branch API.
 ///
 /// Note how we don't have to define every member -- serde will ignore extra
@@ -40,31 +38,26 @@ extern "C" {
     fn log(s: &str);
 }
 
-#[wasm_bindgen]
-pub async fn run() -> Result<JsValue, JsValue> {
+pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
-    let url = "https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver";
-    let request = Request::new_with_str_and_init(&url, &opts)?;
 
-    request
-        .headers()
-        .set("Accept", "application/json")?;
+    let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+    let res :DebugInfo = client.recv_json(request).await?;
 
-    let window = web_sys::window().unwrap();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    Ok(res)
+}
 
-    // `resp_value` is a `Response` object.
-    assert!(resp_value.is_instance_of::<Response>());
-    let resp: Response = resp_value.dyn_into().unwrap();
-
-    // Convert this other `Promise` into a rust `Future`.
-    let json = JsFuture::from(resp.json()?).await?;
-
-    // Use serde to parse the JSON into a struct.
-    let branch_info: DebugInfo = json.into_serde().unwrap();
-
-    // Send the `Branch` struct back to JS as an `Object`.
-    Ok(JsValue::from_serde(&branch_info).unwrap())
+#[wasm_bindgen]
+pub async fn run() -> Result<JsValue, JsValue> {
+    match debug_resolver().await {
+        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
+        Err(_) => return Err(JsValue::from("test2")),
+    };
 }
