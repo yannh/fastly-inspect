@@ -1,11 +1,9 @@
 use serde::{Deserialize, Serialize};
-use wasm_bindgen::prelude::*;
-use web_sys::{RequestInit, RequestMode};
 use surf::http::{Method, Url};
-/// A struct to hold some data from the github Branch API.
-///
-/// Note how we don't have to define every member -- serde will ignore extra
-/// data when deserializing
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugInfo {
     pub dns_resolver_info: DnsResolverInfo,
@@ -20,7 +18,6 @@ pub struct DnsResolverInfo {
     pub cc: String,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientIpInfo {
     pub ip: String,
@@ -28,36 +25,65 @@ pub struct ClientIpInfo {
     pub as_number: String,
 }
 
-// Let's define our external function (imported from JS)
-// Here, we will define our external `console.log`
-#[wasm_bindgen]
-extern "C" {
-    // Use `js_namespace` here to bind `console.log(..)` instead of just
-    // `log(..)`
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PerfMapConfig {
+    pub geo_ip: GeoIP,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GeoIP {
+    pub ci: String,
+    pub co: String,
+    pub ct: String,
+    pub st: String,
 }
 
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
-
     let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
         .header("Content-type", "text/plain")
         .build();
-    let res :DebugInfo = client.recv_json(request).await?;
-
-    Ok(res)
+    Ok(client.recv_json(request).await?)
 }
 
-#[wasm_bindgen]
-pub async fn run() -> Result<JsValue, JsValue> {
+pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
+    let url = Url::parse("https://16365577309317k96lvao-perfmap.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme")?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+
+    let b = client.recv_bytes(request).await?;
+    let mut res: String = b.iter().map(|&c| c as char).collect();
+
+    let offset = res.find('\n').unwrap_or(res.len());
+    res.replace_range(..offset, "");
+    res.pop();
+    res.pop();
+    res = res.replace("'", "\"");
+    match serde_json::from_str(&*res) {
+        Ok(r) => Ok(r),
+        Err(e) => Err(surf::Error::from_str(surf::StatusCode::Accepted, format!("{} : {}", e, res))),
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(target_arch = "wasm32")]
+pub async fn debug_resolver_js() -> Result<JsValue, JsValue> {
     match debug_resolver().await {
         Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
-        Err(_) => return Err(JsValue::from("test2")),
+        Err(_) => return Err(JsValue::from("error retrieving debug_resolver")),
+    };
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(target_arch = "wasm32")]
+pub async fn perf_map_config_js() -> Result<JsValue, JsValue> {
+    match perf_map_config().await {
+        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
+        Err(e) => return Err(JsValue::from(format!("error retrieving perf_map_config: {}", e))),
     };
 }
