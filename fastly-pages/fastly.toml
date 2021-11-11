@@ -1,0 +1,9 @@
+# This file describes a Fastly Compute@Edge package. To learn more visit:
+# https://developer.fastly.com/reference/fastly-toml/
+
+authors = ["Yann Hamon"]
+description = "Host a static website directly on ☁ Fastly compute ☁"
+language = "rust"
+manifest_version = 2
+name = "fastly-pages"
+service_id = ""

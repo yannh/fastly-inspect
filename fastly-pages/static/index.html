@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fastly inspect</title>
+    <link rel="preload" href="./lib/index.js" as="script" />
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <style>
+* { box-sizing: border-box; }
+
+body {
+  font-size: 12px;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+  line-height: 1.25rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+
+table {
+  border: none;
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+col.column-name { width: 28%; }
+col.column-value { width: 72%; }
+
+tbody tr:first-child th {
+  color: #E82C2A;
+  padding-top: 1.5rem;
+}
+
+tr:nth-child(2n) th,
+tr:nth-child(2n) td { background-color: #eee; }
+
+tr { text-align: left; }
+
+th {
+  width: 30%;
+  min-width: 12rem;
+}
+
+th:only-child { width: 100%; }
+
+td {
+  width: 70%;
+  word-wrap: break-word;
+}
+
+td,
+th {
+  border: 0;
+  padding: 0.5rem;
+  vertical-align: top;
+}
+
+.container {
+  margin: 0 auto;
+  text-align: left;
+  width: 40rem;
+  position: relative;
+}
+
+.fake-pre {
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  font-family: monospace;
+  line-height: 1rem;
+  margin: 1.25rem 0;
+  padding: 0.5rem;
+  width: 100%;
+  word-wrap: break-word;
+}
+
+.submission-instructions {
+  font-size: 1.2rem;
+  color: #E82C2A;
+}
+
+.page-header {
+  color: #999;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+.page-header img {
+  display: inline-block;
+  width: 6rem;
+  margin-top: 0.25rem;
+}
+.page-header * {
+  display: inline-block;
+  vertical-align: middle;
+}
+</style>
+
+  </head>
+  <body>
+    <script type="module" src="./lib/index.js"></script>
+<div class='container' id="app">
+  <div class='page-header'>
+    <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAATgAAACMCAMAAADfjUWPAAADAFBMVEX/////MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzP/MzPqa2UIAAAA/3RSTlMAAAIePl5ygouTmIp+blY5JQpoqJWeJ3almZocBUqUzfP03b+gMrdE0DRk41CuQMIoFvsdr0HDKRrk2QTGtXWSBt5nTT+P+CDF1g/itvk2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" style="max-height:86px; " data-js-hook="logo-image-image">
+   <span> | Inspect</span>
+   <span style="display:block; font-size: smaller">A non-official Fastly-debug clone</span>
+  </div>
+  
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
+      <th colspan=2>Client IP Info</th>
+    </tr>
+    <tr>
+      <th>IP</th>
+      <td>{{ client_ip_info.ip }}</td>
+    </tr>
+    <tr>
+      <th>AS Name</th>
+      <td>{{ client_ip_info.as_name }}</td>
+    </tr>
+    <tr>
+      <th>AS Number</th>
+      <td>{{ client_ip_info.as_number }}</td>
+    </tr>
+    <tr>
+      <th>City</th>
+      <td>{{ geo_ip.ci | capitalize }}</td>
+    </tr>
+    <tr>
+      <th>Continent</th>
+      <td>{{ geo_ip.co | capitalize }}</td>
+    </tr>
+    <tr>
+      <th>Country</th>
+      <td>{{ geo_ip.ct | capitalize }}</td>
+    </tr>
+    <tr>
+      <th>State</th>
+      <td>{{ geo_ip.st | capitalize }}</td>
+    </tr>
+  </table>
+  
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
+      <th colspan=2>Resolver IP Info</th>
+    </tr>
+    <tr>
+      <th>IP</th>
+      <td>{{ dns_resolver_info.ip }}</td>
+    </tr>
+    <tr>
+      <th>AS Name</th>
+      <td>{{ dns_resolver_info.as_name }}</td>
+    </tr>
+    <tr>
+      <th>AS Number</th>
+      <td>{{ dns_resolver_info.as_number }}</td>
+    </tr>
+    <tr>
+      <th>Country Code</th>
+      <td>{{ dns_resolver_info.cc }}</td>
+    </tr>
+  </table>
+
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
+      <th colspan=2>Server connection Info</th>
+    </tr>
+    <tr>
+      <th>POP</th>
+      <td>{{ req_infos.pop }}</td>
+    </tr>
+    <tr>
+      <th>Next Hop</th>
+      <td>{{ tcpinfo.nexthop }}</td>
+    </tr>
+  </table>
+
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
+      <th colspan=2>Request Info</th>
+    </tr>
+    <tr>
+      <th>Host</th>
+      <td>{{ req_infos.host }}</td>
+    </tr>
+    <tr>
+      <th>User-Agent</th>
+      <td>{{ req_infos.user_agent }}</td>
+    </tr>
+    <tr>
+      <th>Forwarded-For</th>
+      <td>{{ req_infos.x_forwarded_for }}</td>
+    </tr>
+    <tr>
+      <th>Accept</th>
+      <td>{{ req_infos.accept }}</td>
+    </tr>
+    <tr>
+      <th>Accept-Language</th>
+      <td>{{ req_infos.accept_language }}</td>
+    </tr>
+    <tr>
+      <th>Accept-Encoding</th>
+      <td>{{ req_infos.accept_encoding }}</td>
+    </tr>
+  </table>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+  </body>
+</html>
