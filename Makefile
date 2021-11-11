@@ -11,6 +11,5 @@ build-binary:
 	cargo build --release
 
 site:
-	mkdir -p output/lib
-	cp index.html output/
-	cp index.js pkg/fastly_inspect_bg.wasm pkg/fastly_inspect.js  output/lib
+	cp index.html fastly-pages/static/
+	cp index.js pkg/fastly_inspect_bg.wasm pkg/fastly_inspect.js  fastly-pages/static/lib/

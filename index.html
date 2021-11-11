@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <title>Fastly inspect</title>
     <link rel="preload" href="./lib/index.js" as="script" />
-
-<style>
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <style>
 * { box-sizing: border-box; }
 
 body {
@@ -167,8 +167,59 @@ th {
       <td>{{ dns_resolver_info.cc }}</td>
     </tr>
   </table>
-</div>
 
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
+      <th colspan=2>Server connection Info</th>
+    </tr>
+    <tr>
+      <th>POP</th>
+      <td>{{ req_infos.pop }}</td>
+    </tr>
+    <tr>
+      <th>Next Hop</th>
+      <td>{{ tcpinfo.nexthop }}</td>
+    </tr>
+  </table>
+
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
+      <th colspan=2>Request Info</th>
+    </tr>
+    <tr>
+      <th>Host</th>
+      <td>{{ req_infos.host }}</td>
+    </tr>
+    <tr>
+      <th>User-Agent</th>
+      <td>{{ req_infos.user_agent }}</td>
+    </tr>
+    <tr>
+      <th>Forwarded-For</th>
+      <td>{{ req_infos.x_forwarded_for }}</td>
+    </tr>
+    <tr>
+      <th>Accept</th>
+      <td>{{ req_infos.accept }}</td>
+    </tr>
+    <tr>
+      <th>Accept-Language</th>
+      <td>{{ req_infos.accept_language }}</td>
+    </tr>
+    <tr>
+      <th>Accept-Encoding</th>
+      <td>{{ req_infos.accept_encoding }}</td>
+    </tr>
+  </table>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
   </body>
 </html>

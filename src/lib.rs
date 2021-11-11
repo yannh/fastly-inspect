@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 use surf::http::{Method, Url};
+use std::time::{SystemTime, UNIX_EPOCH};
+use rand::{thread_rng,Rng};
+use rand::distributions::Alphanumeric;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -38,8 +41,62 @@ pub struct GeoIP {
     pub st: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReqInfos {
+    pub accept: String,
+    pub accept_encoding: String,
+    pub accept_language: String,
+    pub host: String,
+    pub pop: String,
+    pub server: String,
+    pub x_forwarded_for: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TcpInfo {
+    pub requests: u32,
+    pub cwnd: u32,
+    pub nexthop: String,
+    pub rtt: u32,
+    pub delta_retrans: u32,
+    pub total_retrans: u32
+}
+
+fn gen_perfmaphost() -> String {
+    let since_epoch = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap();
+    let rand_string: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect();
+
+    return format!("{:?}{}-perfmap", since_epoch, rand_string);
+}
+
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+    Ok(client.recv_json(request).await?)
+}
+
+pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
+    let url = Url::parse(&*format!("{}/req_infos", hostname))?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+    Ok(client.recv_json(request).await?)
+}
+
+pub async fn tcpinfo() -> Result<TcpInfo, surf::Error> {
+    let url = Url::parse("https://fastly-helper.mandragor.org/tcpinfo")?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
@@ -85,5 +142,23 @@ pub async fn perf_map_config_js() -> Result<JsValue, JsValue> {
     match perf_map_config().await {
         Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
         Err(e) => return Err(JsValue::from(format!("error retrieving perf_map_config: {}", e))),
+    };
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(target_arch = "wasm32")]
+pub async fn req_infos_js(hostname: String) -> Result<JsValue, JsValue> {
+    match req_infos(hostname).await {
+        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
+        Err(e) => return Err(JsValue::from(format!("error retrieving req_infos: {}", e))),
+    };
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[cfg(target_arch = "wasm32")]
+pub async fn tcpinfo_js() -> Result<JsValue, JsValue> {
+    match tcpinfo().await {
+        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
+        Err(e) => return Err(JsValue::from(format!("error retrieving tcpinfo: {}", e))),
     };
 }
