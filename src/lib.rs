@@ -3,6 +3,7 @@ use surf::http::{Method, Url};
 use std::time::{SystemTime, UNIX_EPOCH};
 use rand::{thread_rng,Rng};
 use rand::distributions::Alphanumeric;
+use std::collections::HashMap;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -47,6 +48,16 @@ pub struct GeoIP {
     pub co: String,
     pub ct: String,
     pub st: String,
+    pub c_ip: String,
+    pub c_asn: String,
+    pub c_asn_name: String,
+    pub r_ip: String,
+    pub r_asn: String,
+    pub r_asn_name: String,
+    pub r_ci: String,
+    pub r_co: String,
+    pub r_ct: String,
+    pub r_st: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -57,6 +68,7 @@ pub struct ReqInfos {
     pub host: String,
     pub pop: String,
     pub server: String,
+    pub user_agent: String,
     pub x_forwarded_for: String,
 }
 
@@ -68,6 +80,13 @@ pub struct TcpInfo {
     pub rtt: u32,
     pub delta_retrans: u32,
     pub total_retrans: u32
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FastlyInspect {
+    pub geoip: GeoIP,
+    #[serde(rename = "popLatency")]
+    pub pop_latency: HashMap<String, String>,
 }
 
 fn gen_perfmaphost() -> String {
@@ -133,6 +152,41 @@ pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
         Ok(r) => Ok(r),
         Err(e) => Err(surf::Error::from_str(surf::StatusCode::Accepted, format!("{} : {}", e, res))),
     }
+}
+
+pub async fn fastly_inspect() -> Result<FastlyInspect, surf::Error> {
+    let popl: HashMap<String, String> = HashMap::new();
+    let mut o = FastlyInspect{
+        geoip: GeoIP {
+            ci: String::from(""),
+            co: String::from(""),
+            ct: String::from(""),
+            st: String::from(""),
+            c_ip: String::from(""),
+            c_asn: String::from(""),
+            c_asn_name: String::from(""),
+            r_ip: String::from(""),
+            r_asn: String::from(""),
+            r_asn_name: String::from(""),
+            r_ci: String::from(""),
+            r_co: String::from(""),
+            r_ct: String::from(""),
+            r_st: String::from(""),
+        },
+        pop_latency: popl,
+    };
+
+    match perf_map_config().await {
+        Ok(res) => {
+            o.geoip = res.geo_ip;
+            for pop in res.pops.iter() {
+            }
+
+        },
+        Err(e) => return Err(e),
+    };
+
+    return Ok(o);
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]

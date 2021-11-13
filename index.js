@@ -55,14 +55,12 @@ const runWasm = async () => {
                 const url = `https://${pop.popId}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId=${pop.popId}`;
                 await fetch(url).then(_ => {
                     if (performance === undefined) {
-                        log("= Calculate Load Times: performance NOT supported");
                         return;
                     }
                     setTimeout(function() { // There seems to be a small race condition until the timings are available
                         const resources = performance.getEntriesByType("resource");
                         const pop_timings = resources.find(r => r.name === url);
                         app.pops_latency.push({"pop": pop.popId, "latency": pop_timings.responseStart - pop_timings.requestStart})
-                        console.log("timing for "+url+" : " + pop_timings + "\n\n object was:"+JSON.stringify(resources));
                     }, 1000);
                 })
             }));
@@ -71,6 +69,7 @@ const runWasm = async () => {
 
     req_infos_js(location.protocol + "//" + location.hostname + ":" + location.port).then(res => {
         app.req_infos = res;
+        console.log(app.req_infos);
     });
 
     // tcpinfo_js().then(res => {

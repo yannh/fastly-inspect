@@ -1,46 +1,41 @@
+use std::collections::HashMap;
 use futures::executor::block_on;
-use fastly_inspect::{debug_resolver, perf_map_config};
+use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, Pop};
 use serde::{Serialize};
 
-#[derive(Debug, Serialize)]
-pub struct Client {
-    ip: String,
-    as_name: String,
-    country: String,
-}
 
-#[derive(Debug, Serialize)]
-pub struct Output {
-    pub client: Client
-}
 
 fn main() {
-    let mut o =  Output{
-        client: Client {
-            as_name: String::from(""),
-            country: String::from(""),
-            ip: String::from(""),
-        }
+    let popl: HashMap<String, String> = HashMap::new();
+    let mut fi = FastlyInspect{
+        geoip: GeoIP{
+            ci: String::from(""),
+            co: String::from(""),
+            ct: String::from(""),
+            st: String::from(""),
+            c_ip: String::from(""),
+            c_asn: String::from(""),
+            c_asn_name: String::from(""),
+            r_ip: String::from(""),
+            r_asn: String::from(""),
+            r_asn_name: String::from(""),
+            r_ci: String::from(""),
+            r_co: String::from(""),
+            r_ct: String::from(""),
+            r_st: String::from(""),
+        },
+        pop_latency: popl,
     };
 
-    match block_on(debug_resolver()) {
+    match block_on(fastly_inspect()) {
         Ok(res) => {
-            o.client.ip = res.client_ip_info.ip;
-            o.client.as_name = res.client_ip_info.as_name;
+            fi = res;
         }
         Err(e) => eprintln!("{}", e),
     };
 
-    match block_on(perf_map_config()) {
-        Ok(res) => {
-            o.client.country = res.geo_ip.ct;
-        }
-        Err(e) => eprintln!("{}", e),
-    };
-
-    match serde_json::to_string_pretty(&o) {
+    match serde_json::to_string_pretty(&fi) {
         Ok(r) => println!("{}", r),
         Err(e) => eprintln!("{}", e),
     }
-
 }
