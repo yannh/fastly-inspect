@@ -192,6 +192,20 @@ th {
       <col class='column-value' />
     </colgroup>
     <tr>
+      <th colspan=2>POP Latency (ms)</th>
+    </tr>
+    <tr v-for="pop_latency in sortedPOPs">
+      <th>{{ pop_latency.pop.toUpperCase() }}</th>
+      <td>{{ pop_latency.latency }}</td>
+    </tr>
+  </table>
+
+  <table>
+    <colgroup>
+      <col class='column-name' />
+      <col class='column-value' />
+    </colgroup>
+    <tr>
       <th colspan=2>Request Info</th>
     </tr>
     <tr>

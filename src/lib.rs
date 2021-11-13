@@ -31,6 +31,14 @@ pub struct ClientIpInfo {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PerfMapConfig {
     pub geo_ip: GeoIP,
+    pub pops: Vec<Pop>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Pop {
+    #[serde(rename = "popId")]
+    pub pop_id: String,
+    pub hostname: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
