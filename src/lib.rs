@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use surf::http::{Method, Url};
-use std::time::{SystemTime, UNIX_EPOCH};
-use rand::{thread_rng,Rng};
-use rand::distributions::Alphanumeric;
+// use std::time::{SystemTime, UNIX_EPOCH};
+// use rand::{thread_rng,Rng};
+// use rand::distributions::Alphanumeric;
 use std::collections::HashMap;
 
 #[cfg(target_arch = "wasm32")]
@@ -82,25 +82,53 @@ pub struct TcpInfo {
     pub total_retrans: u32
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FastlyInspectRequest {
+    pub resolver_ip: String,
+    pub resolver_as_name: String,
+    pub resolver_as_number: String,
+    pub resolver_country_code: String,
+    pub client_ip: String,
+    pub client_as_name: String,
+    pub client_as_number: String,
+    pub time: String,
+    pub host: String,
+    pub accept: String,
+    pub useragent: String,
+    pub acceptlanguage: String,
+    pub acceptencoding: String,
+    pub fastlyserverip: String,
+    pub xff: String,
+    pub datacenter: String,
+    pub bandwidth_mbps: String,
+    pub cwnd: i32,
+    pub nexthop: String,
+    pub rtt: f32,
+    pub delta_retrans: i32,
+    pub total_retrans: i32
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FastlyInspect {
     pub geoip: GeoIP,
     #[serde(rename = "popLatency")]
     pub pop_latency: HashMap<String, String>,
+    pub request: FastlyInspectRequest,
 }
 
-fn gen_perfmaphost() -> String {
-    let since_epoch = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap();
-    let rand_string: String = thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(30)
-        .map(char::from)
-        .collect();
-
-    return format!("{:?}{}-perfmap", since_epoch, rand_string);
-}
+//fn gen_perfmaphost() -> String {
+//    let since_epoch = SystemTime::now()
+//        .duration_since(UNIX_EPOCH)
+//        .unwrap();
+//    let rand_string: String = thread_rng()
+//        .sample_iter(&Alphanumeric)
+//        .take(30)
+//        .map(char::from)
+//        .collect();
+//
+//    return format!("{:?}{}-perfmap", since_epoch, rand_string);
+//}
 
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
@@ -154,7 +182,7 @@ pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
     }
 }
 
-pub async fn fastly_inspect() -> Result<FastlyInspect, surf::Error> {
+pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Error> {
     let popl: HashMap<String, String> = HashMap::new();
     let mut o = FastlyInspect{
         geoip: GeoIP {
@@ -174,14 +202,64 @@ pub async fn fastly_inspect() -> Result<FastlyInspect, surf::Error> {
             r_st: String::from(""),
         },
         pop_latency: popl,
+        request: FastlyInspectRequest{
+            resolver_ip: String::from(""),
+            resolver_as_name: String::from(""),
+            resolver_as_number: String::from(""),
+            resolver_country_code: String::from(""),
+            client_ip: String::from(""),
+            client_as_name: String::from(""),
+            client_as_number: String::from(""),
+            time: String::from(""),
+            host: String::from(""),
+            accept: String::from(""),
+            useragent: String::from(""),
+            acceptlanguage: String::from(""),
+            acceptencoding: String::from(""),
+            fastlyserverip: String::from(""),
+            xff: String::from(""),
+            datacenter: String::from(""),
+            bandwidth_mbps: String::from(""),
+            cwnd: 0,
+            nexthop: String::from(""),
+            rtt: 0.0,
+            delta_retrans: 0,
+            total_retrans: 0
+        }
     };
 
     match perf_map_config().await {
         Ok(res) => {
             o.geoip = res.geo_ip;
             for pop in res.pops.iter() {
+                o.pop_latency.insert(pop.pop_id.clone(), String::from(""));
             }
 
+        },
+        Err(e) => return Err(e),
+    };
+
+    match req_infos(hostname).await {
+        Ok(res) => {
+            o.request.accept = res.accept;
+            o.request.acceptlanguage = res.accept_language;
+            o.request.acceptencoding = res.accept_encoding;
+            o.request.host = res.host;
+            o.request.useragent = res.user_agent;
+            o.request.xff = res.x_forwarded_for;
+        },
+        Err(e) => return Err(e),
+    };
+
+    match debug_resolver().await {
+        Ok(res) => {
+            o.request.client_ip = res.client_ip_info.ip;
+            o.request.client_as_name = res.client_ip_info.as_name;
+            o.request.client_as_number = res.client_ip_info.as_number;
+            o.request.resolver_ip = res.dns_resolver_info.ip;
+            o.request.resolver_as_name = res.dns_resolver_info.as_name;
+            o.request.resolver_as_number = res.dns_resolver_info.as_number;
+            o.request.resolver_country_code = res.dns_resolver_info.cc;
         },
         Err(e) => return Err(e),
     };

@@ -1,14 +1,11 @@
 use std::collections::HashMap;
 use futures::executor::block_on;
-use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, Pop};
-use serde::{Serialize};
-
-
+use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest};
 
 fn main() {
     let popl: HashMap<String, String> = HashMap::new();
     let mut fi = FastlyInspect{
-        geoip: GeoIP{
+        geoip: GeoIP {
             ci: String::from(""),
             co: String::from(""),
             ct: String::from(""),
@@ -25,9 +22,33 @@ fn main() {
             r_st: String::from(""),
         },
         pop_latency: popl,
+        request: FastlyInspectRequest{
+            resolver_ip: String::from(""),
+            resolver_as_name: String::from(""),
+            resolver_as_number: String::from(""),
+            resolver_country_code: String::from(""),
+            client_ip: String::from(""),
+            client_as_name: String::from(""),
+            client_as_number: String::from(""),
+            time: String::from(""),
+            host: String::from(""),
+            accept: String::from(""),
+            useragent: String::from(""),
+            acceptlanguage: String::from(""),
+            acceptencoding: String::from(""),
+            fastlyserverip: String::from(""),
+            xff: String::from(""),
+            datacenter: String::from(""),
+            bandwidth_mbps: String::from(""),
+            cwnd: 0,
+            nexthop: String::from(""),
+            rtt: 0.0,
+            delta_retrans: 0,
+            total_retrans: 0
+        }
     };
 
-    match block_on(fastly_inspect()) {
+    match block_on(fastly_inspect(String::from("http://127.0.0.1:7676"))) {
         Ok(res) => {
             fi = res;
         }
