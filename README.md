@@ -1,5 +1,9 @@
 # Fastly-inspect
 
+*This is alpha-level software. Comments, suggestions, feedback are
+encouraged, however since the code is in very early phase, please
+discuss any contribution with me beforehand. Thanks!*
+
 Fastly-inspect collects information about your internet connection and 
 connectivity to Fastly's Network to help troubleshoot networking problems.
 
