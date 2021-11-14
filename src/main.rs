@@ -3,7 +3,7 @@ use futures::executor::block_on;
 use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest, FastlyInspectPopAssignments};
 
 fn main() {
-    let popl: HashMap<String, String> = HashMap::new();
+    let popl: HashMap<String, u16> = HashMap::new();
     let mut fi = FastlyInspect{
         geoip: GeoIP {
             ci: String::from(""),

@@ -14,7 +14,7 @@ It is a non-official, modern, free-software clone of
  * A command-line tool, as a statically linked binary to run on your server.
 
 ### Demo
-#### Web interface
+#### Web Application
 
 Visit the [official Fastly-Inspect page](https://fastly-inspect.edgecompute.app/). Note that it makes some requests to fastly-analytics.com
 which can be blocked by adblockers, so disable your adblocker on this page if
@@ -33,4 +33,23 @@ $ ./fastly-inspect
     "c_asn": "31334",
     "c_asn_name": "vodafone kabel deutschland gmbh",
     [...]
+```
+
+## Build
+### Web Application
+
+Building the web-application is a 2-step process:
+```bash
+  # Compile the Webassembly asset used by the webapp
+  fastly-inspect$ make build-wasm
+  # Copy the resulting files to another folder
+  fastly-inspect$ make site
+  # Compile the compute@edge Webassembly binary
+  fastly-inspect$ cd fastly-pages
+  fastly-inspect/fastly-pages$ fastly compute build
+```
+
+### Web Application
+```bash
+  fastly-inspect$ make build-binary
 ```
