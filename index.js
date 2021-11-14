@@ -27,6 +27,11 @@ var app = new Vue({
             return new Map([...this.fastly_inspect.popLatency.entries()].sort());
         }
     },
+    methods: {
+        toclipboard: function (e) {
+            navigator.clipboard.writeText(this.$options.filters.base64(this.fastly_inspect));
+        }
+    }
 })
 
 const runWasm = async () => {

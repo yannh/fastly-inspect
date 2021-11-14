@@ -94,6 +94,27 @@ th {
   color: #E82C2A;
 }
 
+#to-clipboard {
+  float: right;
+  font-weight: bold;
+  border-radius: 5px;
+  padding: 4px 12px;
+  border: 1px solid rgb(0, 117, 156);
+  color: rgb(0, 117, 156);
+  background-color: white;
+}
+
+#to-clipboard:hover {
+  background-color: rgb(0, 117, 156);
+  color: white;
+  cursor: pointer;
+}
+
+#to-clipboard:active {
+  background-color: white;
+  color: rgb(0, 117, 156);
+}
+
 .page-header {
   color: #999;
   font-size: 1.75rem;
@@ -126,8 +147,9 @@ th {
       </div>
 
       <div id="submission">
+        <button id="to-clipboard" @click="toclipboard">Copy to clipboard</button>
         <span class="instructions">Please submit text block below with your ticket to Fastly</span>
-        <div class="pre">{{ fastly_inspect | base64 }}</div>
+        <div class="pre" id="copyme">{{ fastly_inspect | base64 }}</div>
       </div>
 
       <table>
