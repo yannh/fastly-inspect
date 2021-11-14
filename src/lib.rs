@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use surf::http::{Method, Url};
-// use std::time::{SystemTime, UNIX_EPOCH};
-// use rand::{thread_rng,Rng};
-// use rand::distributions::Alphanumeric;
+use std::time::{SystemTime, UNIX_EPOCH};
+use rand::{thread_rng,Rng};
+use rand::distributions::Alphanumeric;
 use std::collections::HashMap;
 
 #[cfg(target_arch = "wasm32")]
@@ -126,18 +126,15 @@ pub struct FastlyInspect {
     pub pop_assignments: FastlyInspectPopAssignments,
 }
 
-//fn gen_perfmaphost() -> String {
-//    let since_epoch = SystemTime::now()
-//        .duration_since(UNIX_EPOCH)
-//        .unwrap();
-//    let rand_string: String = thread_rng()
-//        .sample_iter(&Alphanumeric)
-//        .take(30)
-//        .map(char::from)
-//        .collect();
-//
-//    return format!("{:?}{}-perfmap", since_epoch, rand_string);
-//}
+fn gen_perfmaphost() -> String {
+    let rand_string: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(30)
+        .map(char::from)
+        .collect();
+
+    return format!("{}-perfmap", rand_string);
+}
 
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
@@ -170,7 +167,7 @@ pub async fn tcpinfo() -> Result<TcpInfo, surf::Error> {
 }
 
 pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
-    let url = Url::parse("https://16365577309317k96lvao-perfmap.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme")?;
+    let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", "16365577309317k96lvao-perfmap"))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")

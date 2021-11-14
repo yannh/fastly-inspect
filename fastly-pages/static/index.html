@@ -141,15 +141,15 @@ th {
         </tr>
         <tr>
           <th>IP</th>
-          <td>{{ fastly_inspect.geoip.c_ip }}</td>
+          <td>{{ fastly_inspect.request.client_ip }}</td>
         </tr>
         <tr>
           <th>AS Name</th>
-          <td>{{ fastly_inspect.geoip.c_asn_name }}</td>
+          <td>{{ fastly_inspect.request.client_as_name }}</td>
         </tr>
         <tr>
           <th>AS Number</th>
-          <td>{{ fastly_inspect.geoip.c_asn }}</td>
+          <td>{{ fastly_inspect.request.client_as_number }}</td>
         </tr>
         <tr>
           <th>City</th>

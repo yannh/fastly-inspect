@@ -38,18 +38,22 @@ $ ./fastly-inspect
 ## Build
 ### Web Application
 
-Building the web-application is a 2-step process:
+Requirements:
+ * Rust
+ * Wasm-Pack
+ * The Fastly CLI
+
+Building is a 2-step process:
 ```bash
   # Compile the Webassembly asset used by the webapp
-  fastly-inspect$ make build-wasm
-  # Copy the resulting files to another folder
-  fastly-inspect$ make site
+  # Copy the results to a target folder
+  fastly-inspect$ make build-wasm site
   # Compile the compute@edge Webassembly binary
   fastly-inspect$ cd fastly-pages
   fastly-inspect/fastly-pages$ fastly compute build
 ```
 
-### Web Application
+### Command-line tool
 ```bash
   fastly-inspect$ make build-binary
 ```

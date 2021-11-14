@@ -1,5 +1,3 @@
-// Import our outputted wasm ES6 module
-// Which, export default's, an initialization function
 import wasmInit, {
     fastly_inspect_js
 } from "./fastly_inspect.js";
@@ -38,7 +36,6 @@ const runWasm = async () => {
         app.fastly_inspect = res;
 
         var pl = Object.entries(res.popLatency);
-        console.log(pl);
         while (pl.length) {
             await Promise.all(pl.splice(0, 2).map(async pop => { // Only 2 requests at a time, to not skew the timings
                 const url = `https://${pop[0]}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId=${pop[0]}`;
@@ -55,15 +52,6 @@ const runWasm = async () => {
             }));
         }
     });
-
-    //perf_map_config_js().then(async res => {
-    //    app.geo_ip = res.geo_ip;
-
-    //});
-
-    // tcpinfo_js().then(res => {
-    //     app.tcpinfo = res;
-    // });
 };
 
 runWasm();
