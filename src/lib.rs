@@ -110,11 +110,20 @@ pub struct FastlyInspectRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct FastlyInspectPopAssignments {
+    pub ac: String,
+    #[serde(rename = "as")]
+    pub popas: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FastlyInspect {
     pub geoip: GeoIP,
     #[serde(rename = "popLatency")]
     pub pop_latency: HashMap<String, String>,
     pub request: FastlyInspectRequest,
+    #[serde(rename = "popAssignments")]
+    pub pop_assignments: FastlyInspectPopAssignments,
 }
 
 //fn gen_perfmaphost() -> String {
@@ -202,6 +211,10 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
             r_st: String::from(""),
         },
         pop_latency: popl,
+        pop_assignments: FastlyInspectPopAssignments {
+            ac: String::from(""),
+            popas: String::from(""),
+        },
         request: FastlyInspectRequest{
             resolver_ip: String::from(""),
             resolver_as_name: String::from(""),
@@ -241,6 +254,8 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
 
     match req_infos(hostname).await {
         Ok(res) => {
+            o.pop_assignments.popas = res.pop;
+
             o.request.accept = res.accept;
             o.request.acceptlanguage = res.accept_language;
             o.request.acceptencoding = res.accept_encoding;
@@ -269,36 +284,9 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[cfg(target_arch = "wasm32")]
-pub async fn debug_resolver_js() -> Result<JsValue, JsValue> {
-    match debug_resolver().await {
+pub async fn fastly_inspect_js(hostname: String) -> Result<JsValue, JsValue> {
+    match fastly_inspect(hostname).await {
         Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
         Err(_) => return Err(JsValue::from("error retrieving debug_resolver")),
-    };
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
-pub async fn perf_map_config_js() -> Result<JsValue, JsValue> {
-    match perf_map_config().await {
-        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
-        Err(e) => return Err(JsValue::from(format!("error retrieving perf_map_config: {}", e))),
-    };
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
-pub async fn req_infos_js(hostname: String) -> Result<JsValue, JsValue> {
-    match req_infos(hostname).await {
-        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
-        Err(e) => return Err(JsValue::from(format!("error retrieving req_infos: {}", e))),
-    };
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-#[cfg(target_arch = "wasm32")]
-pub async fn tcpinfo_js() -> Result<JsValue, JsValue> {
-    match tcpinfo().await {
-        Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
-        Err(e) => return Err(JsValue::from(format!("error retrieving tcpinfo: {}", e))),
     };
 }

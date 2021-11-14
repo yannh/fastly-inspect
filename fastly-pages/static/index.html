@@ -114,31 +114,31 @@ th {
     </tr>
     <tr>
       <th>IP</th>
-      <td>{{ client_ip_info.ip }}</td>
+      <td>{{ fastly_inspect.geoip.c_ip }}</td>
     </tr>
     <tr>
       <th>AS Name</th>
-      <td>{{ client_ip_info.as_name }}</td>
+      <td>{{ fastly_inspect.geoip.c_asn_name }}</td>
     </tr>
     <tr>
       <th>AS Number</th>
-      <td>{{ client_ip_info.as_number }}</td>
+      <td>{{ fastly_inspect.geoip.c_asn }}</td>
     </tr>
     <tr>
       <th>City</th>
-      <td>{{ geo_ip.ci | capitalize }}</td>
+      <td>{{ fastly_inspect.geoip.ci | capitalize }}</td>
     </tr>
     <tr>
       <th>Continent</th>
-      <td>{{ geo_ip.co | capitalize }}</td>
+      <td>{{ fastly_inspect.geoip.co | capitalize }}</td>
     </tr>
     <tr>
       <th>Country</th>
-      <td>{{ geo_ip.ct | capitalize }}</td>
+      <td>{{ fastly_inspect.geoip.ct | capitalize }}</td>
     </tr>
     <tr>
       <th>State</th>
-      <td>{{ geo_ip.st | capitalize }}</td>
+      <td>{{ fastly_inspect.geoip.st | capitalize }}</td>
     </tr>
   </table>
   
@@ -152,19 +152,19 @@ th {
     </tr>
     <tr>
       <th>IP</th>
-      <td>{{ dns_resolver_info.ip }}</td>
+      <td>{{ fastly_inspect.request.resolver_ip }}</td>
     </tr>
     <tr>
       <th>AS Name</th>
-      <td>{{ dns_resolver_info.as_name }}</td>
+      <td>{{ fastly_inspect.request.resolver_as_name }}</td>
     </tr>
     <tr>
       <th>AS Number</th>
-      <td>{{ dns_resolver_info.as_number }}</td>
+      <td>{{ fastly_inspect.request.resolver_as_number }}</td>
     </tr>
     <tr>
       <th>Country Code</th>
-      <td>{{ dns_resolver_info.cc }}</td>
+      <td>{{ fastly_inspect.request.resolver_country_code }}</td>
     </tr>
   </table>
 
@@ -178,25 +178,11 @@ th {
     </tr>
     <tr>
       <th>POP</th>
-      <td>{{ req_infos.pop }}</td>
+      <td>{{ fastly_inspect.popAssignments.as }}</td>
     </tr>
     <tr>
       <th>Next Hop</th>
-      <td>{{ tcpinfo.nexthop }}</td>
-    </tr>
-  </table>
-
-  <table>
-    <colgroup>
-      <col class='column-name' />
-      <col class='column-value' />
-    </colgroup>
-    <tr>
-      <th colspan=2>POP Latency (ms)</th>
-    </tr>
-    <tr v-for="pop_latency in sortedPOPs">
-      <th>{{ pop_latency.pop.toUpperCase() }}</th>
-      <td>{{ pop_latency.latency }}</td>
+      <td></td>
     </tr>
   </table>
 
@@ -210,27 +196,27 @@ th {
     </tr>
     <tr>
       <th>Host</th>
-      <td>{{ req_infos.host }}</td>
+      <td>{{ fastly_inspect.request.host }}</td>
     </tr>
     <tr>
       <th>User-Agent</th>
-      <td>{{ req_infos.user_agent }}</td>
+      <td>{{ fastly_inspect.request.useragent }}</td>
     </tr>
     <tr>
       <th>Forwarded-For</th>
-      <td>{{ req_infos.x_forwarded_for }}</td>
+      <td>{{ fastly_inspect.request.xff }}</td>
     </tr>
     <tr>
       <th>Accept</th>
-      <td>{{ req_infos.accept }}</td>
+      <td>{{ fastly_inspect.request.accept }}</td>
     </tr>
     <tr>
       <th>Accept-Language</th>
-      <td>{{ req_infos.accept_language }}</td>
+      <td>{{ fastly_inspect.request.acceptlanguage }}</td>
     </tr>
     <tr>
       <th>Accept-Encoding</th>
-      <td>{{ req_infos.accept_encoding }}</td>
+      <td>{{ fastly_inspect.request.acceptencoding }}</td>
     </tr>
   </table>
 </div>

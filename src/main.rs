@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use futures::executor::block_on;
-use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest};
+use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest, FastlyInspectPopAssignments};
 
 fn main() {
     let popl: HashMap<String, String> = HashMap::new();
@@ -22,6 +22,10 @@ fn main() {
             r_st: String::from(""),
         },
         pop_latency: popl,
+        pop_assignments: FastlyInspectPopAssignments {
+            ac: String::from(""),
+            popas: String::from(""),
+        },
         request: FastlyInspectRequest{
             resolver_ip: String::from(""),
             resolver_as_name: String::from(""),
@@ -48,7 +52,7 @@ fn main() {
         }
     };
 
-    match block_on(fastly_inspect(String::from("http://127.0.0.1:7676"))) {
+    match block_on(fastly_inspect(String::from("https://fastly-inspect.edgecompute.app/"))) {
         Ok(res) => {
             fi = res;
         }

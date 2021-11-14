@@ -1,18 +1,18 @@
 // Import our outputted wasm ES6 module
 // Which, export default's, an initialization function
 import wasmInit, {
-    debug_resolver_js, perf_map_config_js, req_infos_js, tcpinfo_js
+    fastly_inspect_js
 } from "./fastly_inspect.js";
 
 var app = new Vue({
     el: '#app',
     data: {
-        client_ip_info: {},
-        dns_resolver_info : {},
-        geo_ip: {},
-        req_infos: {},
-        tcpinfo: {},
-        pops_latency: [],
+        fastly_inspect: {
+            geoip: {},
+            popLatency: {},
+            popAssignments: {},
+            request: {},
+        },
     },
     filters: {
         capitalize: function (value) {
@@ -36,41 +36,33 @@ var app = new Vue({
     }
 })
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 const runWasm = async () => {
     await wasmInit("./lib/fastly_inspect_bg.wasm");
 
-    debug_resolver_js().then(res => {
-        app.client_ip_info = res.client_ip_info;
-        app.dns_resolver_info = res.dns_resolver_info;
-    });
-    perf_map_config_js().then(async res => {
-        app.geo_ip = res.geo_ip;
-
-        while (res.pops.length) {
-            await Promise.all(res.pops.splice(0, 2).map(async pop => { // Only 2 requests at a time, to not skew the timings
-                const url = `https://${pop.popId}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId=${pop.popId}`;
-                await fetch(url).then(_ => {
-                    if (performance === undefined) {
-                        return;
-                    }
-                    setTimeout(function() { // There seems to be a small race condition until the timings are available
-                        const resources = performance.getEntriesByType("resource");
-                        const pop_timings = resources.find(r => r.name === url);
-                        app.pops_latency.push({"pop": pop.popId, "latency": pop_timings.responseStart - pop_timings.requestStart})
-                    }, 1000);
-                })
-            }));
-        }
+    fastly_inspect_js(location.protocol + "//" + location.hostname + ":" + location.port).then(res => {
+        app.fastly_inspect = res;
+        console.log(app.fastly_inspect);
     });
 
-    req_infos_js(location.protocol + "//" + location.hostname + ":" + location.port).then(res => {
-        app.req_infos = res;
-        console.log(app.req_infos);
-    });
+    //perf_map_config_js().then(async res => {
+    //    app.geo_ip = res.geo_ip;
+
+    //    while (res.pops.length) {
+    //        await Promise.all(res.pops.splice(0, 2).map(async pop => { // Only 2 requests at a time, to not skew the timings
+    //            const url = `https://${pop.popId}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId=${pop.popId}`;
+    //            await fetch(url).then(_ => {
+    //                if (performance === undefined) {
+    //                    return;
+    //                }
+    //                setTimeout(function() { // There seems to be a small race condition until the timings are available
+    //                    const resources = performance.getEntriesByType("resource");
+    //                    const pop_timings = resources.find(r => r.name === url);
+    //                    app.pops_latency.push({"pop": pop.popId, "latency": pop_timings.responseStart - pop_timings.requestStart})
+    //                }, 1000);
+    //            })
+    //        }));
+    //    }
+    //});
 
     // tcpinfo_js().then(res => {
     //     app.tcpinfo = res;
