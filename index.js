@@ -19,6 +19,9 @@ var app = new Vue({
             if (!value) return ''
             value = value.toString()
             return value.charAt(0).toUpperCase() + value.slice(1)
+        },
+        base64: function (s) {
+            return btoa(JSON.stringify(s, null, 2));
         }
     },
     computed: {
@@ -33,7 +36,7 @@ var app = new Vue({
 
             return this.pops_latency.sort(compare);
         }
-    }
+    },
 })
 
 const runWasm = async () => {

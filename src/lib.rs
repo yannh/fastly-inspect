@@ -120,7 +120,7 @@ pub struct FastlyInspectPopAssignments {
 pub struct FastlyInspect {
     pub geoip: GeoIP,
     #[serde(rename = "popLatency")]
-    pub pop_latency: HashMap<String, String>,
+    pub pop_latency: HashMap<String, u16>,
     pub request: FastlyInspectRequest,
     #[serde(rename = "popAssignments")]
     pub pop_assignments: FastlyInspectPopAssignments,
@@ -192,7 +192,7 @@ pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
 }
 
 pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Error> {
-    let popl: HashMap<String, String> = HashMap::new();
+    let popl: HashMap<String, u16> = HashMap::new();
     let mut o = FastlyInspect{
         geoip: GeoIP {
             ci: String::from(""),
@@ -245,7 +245,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Ok(res) => {
             o.geoip = res.geo_ip;
             for pop in res.pops.iter() {
-                o.pop_latency.insert(pop.pop_id.clone(), String::from(""));
+                o.pop_latency.insert(pop.pop_id.clone(), 0);
             }
 
         },
