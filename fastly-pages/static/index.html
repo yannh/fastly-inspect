@@ -10,8 +10,8 @@
 
 body {
   text-size-adjust: 100%;
-  font-size: 1.3rem;
-  line-height: 2.2rem;
+  font-size: 1.2rem;
+  line-height: 2.0rem;
   font-family: 'Helvetica Neue', helvetica, sans-serif;
   margin: 2rem 0;
   text-align: center;
@@ -232,7 +232,19 @@ th {
         </tr>
         <tr>
           <th>Next Hop</th>
-          <td></td>
+          <td>{{ fastly_inspect.request.nexthop }}</td>
+        </tr>
+        <tr>
+          <th>RTT</th>
+          <td>{{ fastly_inspect.request.rtt / 1000}}ms</td>
+        </tr>
+        <tr>
+          <th>Delta retransmits</th>
+          <td>{{ fastly_inspect.request.delta_retrans }}</td>
+        </tr>
+        <tr>
+          <th>Total retransmits</th>
+          <td>{{ fastly_inspect.request.total_retrans }}</td>
         </tr>
       </table>
 

@@ -73,8 +73,7 @@ pub struct ReqInfos {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TcpInfo {
-    pub requests: u32,
+pub struct ReqInfosLegacy {
     pub cwnd: u32,
     pub nexthop: String,
     pub rtt: u32,
@@ -102,11 +101,11 @@ pub struct FastlyInspectRequest {
     pub xff: String,
     pub datacenter: String,
     pub bandwidth_mbps: String,
-    pub cwnd: i32,
+    pub cwnd: u32,
     pub nexthop: String,
-    pub rtt: f32,
-    pub delta_retrans: i32,
-    pub total_retrans: i32
+    pub rtt: u32,
+    pub delta_retrans: u32,
+    pub total_retrans: u32
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -146,8 +145,10 @@ pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     Ok(client.recv_json(request).await?)
 }
 
-pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
-    let url = Url::parse(&*format!("{}/req_infos", hostname))?;
+
+// Get data from a VCL service for vars not yet available in compute
+pub async fn req_infos_legacy(hostname: String) -> Result<ReqInfosLegacy, surf::Error> {
+    let url = Url::parse(&*format!("https://{}/req_infos", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
@@ -156,8 +157,8 @@ pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
     Ok(client.recv_json(request).await?)
 }
 
-pub async fn tcpinfo() -> Result<TcpInfo, surf::Error> {
-    let url = Url::parse("https://fastly-helper.mandragor.org/tcpinfo")?;
+pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
+    let url = Url::parse(&*format!("{}/req_infos", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
@@ -232,7 +233,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
             bandwidth_mbps: String::from(""),
             cwnd: 0,
             nexthop: String::from(""),
-            rtt: 0.0,
+            rtt: 0,
             delta_retrans: 0,
             total_retrans: 0
         }
@@ -263,6 +264,17 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
+    match req_infos_legacy(String::from("fastly-helper.mandragor.org")).await {
+        Ok(res) => {
+            o.request.cwnd = res.cwnd;
+            o.request.delta_retrans = res.delta_retrans;
+            o.request.nexthop = res.nexthop;
+            o.request.total_retrans = res.total_retrans;
+            o.request.rtt = res.rtt;
+        },
+        Err(e) => return Err(e),
+    };
+
     match debug_resolver().await {
         Ok(res) => {
             o.request.client_ip = res.client_ip_info.ip;
@@ -284,6 +296,6 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
 pub async fn fastly_inspect_js(hostname: String) -> Result<JsValue, JsValue> {
     match fastly_inspect(hostname).await {
         Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
-        Err(_) => return Err(JsValue::from("error retrieving debug_resolver")),
+        Err(e) => return Err(JsValue::from(&*format!("error retrieving fastly_inspect: {}", e))),
     };
 }
