@@ -20,11 +20,22 @@ var app = new Vue({
         },
         base64: function (s) {
             return btoa(JSON.stringify(s, null, 2));
+        },
+        sortHash: function (h) {
+            var resultHash = {}
+            Object.keys(h).sort().forEach(k => resultHash[k]=h[k])
+            return resultHash;
         }
     },
     computed: {
         sortedPOPs: function() {
-            return new Map([...this.fastly_inspect.popLatency.entries()].sort());
+            var resultHash = {};
+            let h = this.fastly_inspect.popLatency;
+            var keys = Object.keys(h);
+            keys.sort().forEach(function(k) {
+                resultHash[k] = h[k];
+            });
+            return resultHash;
         }
     },
     methods: {

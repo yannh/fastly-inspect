@@ -242,7 +242,7 @@ th {
         <tr>
           <th colspan=2>POP Latency (ms)</th>
         </tr>
-        <tr v-for="(latency, pop) in fastly_inspect.popLatency">
+        <tr v-for="(latency, pop) in $options.filters.sortHash(fastly_inspect.popLatency)">
           <th>{{ pop.toUpperCase() }}</th>
           <td>{{ latency }}</td>
         </tr>
