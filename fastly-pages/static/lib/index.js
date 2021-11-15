@@ -27,17 +27,6 @@ var app = new Vue({
             return resultHash;
         }
     },
-    computed: {
-        sortedPOPs: function() {
-            var resultHash = {};
-            let h = this.fastly_inspect.popLatency;
-            var keys = Object.keys(h);
-            keys.sort().forEach(function(k) {
-                resultHash[k] = h[k];
-            });
-            return resultHash;
-        }
-    },
     methods: {
         toclipboard: function (e) {
             navigator.clipboard.writeText(this.$options.filters.base64(this.fastly_inspect));
