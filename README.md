@@ -35,6 +35,20 @@ $ ./fastly-inspect
     [...]
 ```
 
+## How this works
+
+The fastly-inspect application (src/main.rs) and the Fastly-inspect library (src/lib.rs)
+compile to the Fastly-inspect CLI for any supported platform (eg. x86_64.*).
+
+The library can also be compiled to WASM, which is then used by the Fastly-Inspect
+Web application, itself a VueJS 3.* App.
+
+To be deployed on Fastly's platform, a Rust compute@edge application, forked from
+[Fastly pages](https://github.com/yannh/fastly-pages) (in fastly-pages/) and that also
+compiles to WASM, embeds all the static assets directly in WASM binary and will:
+ * serve those static assets
+ * provide additional API endpoints
+
 ## Build
 ### Web Application
 

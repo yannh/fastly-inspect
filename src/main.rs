@@ -60,6 +60,7 @@ fn main() {
         Err(e) => eprintln!("{}", e),
     };
 
+    // TTFB measurements - implemented here, the Web version relies on the Web Performance API
     for (pop, popl) in fi.pop_latency.iter_mut() {
         let url = format!("https://{}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId={}", pop, pop);
         match ttfb(url, false) {
