@@ -3,6 +3,9 @@ name = "fastly-inspect"
 version = "0.1.0"
 authors = ["Yann Hamon <yann@mandragor.org>"]
 edition = "2021"
+description = "An implementation of fastly-debug.com in Rust, for use in Browser (wasm) or as a statically compiled CLI"
+repository = "https://github.com/yannh/fastly-inspect"
+license = "MIT"
 
 [[bin]]
 name = "fastly-inspect"
@@ -27,6 +30,7 @@ wasm-bindgen-futures = "0.4.28"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 surf = {version = "2.3.2", features = ["middleware-logger"] }
+ttfb = "1.2.0"
 futures = "^0.3.0"
 
 [dependencies.web-sys]

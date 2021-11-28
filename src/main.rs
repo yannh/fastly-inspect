@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use futures::executor::block_on;
 use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest, FastlyInspectPopAssignments};
+use ttfb::ttfb;
 
 fn main() {
     let popl: HashMap<String, u16> = HashMap::new();
@@ -46,7 +47,7 @@ fn main() {
             bandwidth_mbps: String::from(""),
             cwnd: 0,
             nexthop: String::from(""),
-            rtt: 0.0,
+            rtt: 0,
             delta_retrans: 0,
             total_retrans: 0
         }
@@ -58,6 +59,14 @@ fn main() {
         }
         Err(e) => eprintln!("{}", e),
     };
+
+    for (pop, popl) in fi.pop_latency.iter_mut() {
+        let url = format!("https://{}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId={}", pop, pop);
+        match ttfb(url, false) {
+            Ok(l) =>  *popl = l.http_ttfb_duration_rel().as_millis() as u16,
+            Err (e) =>  eprintln!("{}", e),
+        }
+    }
 
     match serde_json::to_string_pretty(&fi) {
         Ok(r) => println!("{}", r),
