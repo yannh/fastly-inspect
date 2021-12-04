@@ -4,12 +4,14 @@ use surf::http::{Method, Url};
 //use rand::distributions::Alphanumeric;
 use std::collections::HashMap;
 
-
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Instant};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+use js_sys::Date;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugInfo {
@@ -103,7 +105,7 @@ pub struct FastlyInspectRequest {
     pub fastlyserverip: String,
     pub xff: String,
     pub datacenter: String,
-    pub bandwidth_mbps: f32,
+    pub bandwidth_mbps: f64,
     pub cwnd: u32,
     pub nexthop: String,
     pub rtt: u32,
@@ -171,19 +173,38 @@ pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub async fn speed_test(hostname: &str) -> Result<f32, surf::Error> {
+pub async fn speed_test(hostname: &str) -> Result<f64, surf::Error> {
     let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
         .header("Content-type", "text/plain")
         .build();
+
     let now = Instant::now();
     let _ = client.recv_bytes(request).await;
-    let elapsed = now.elapsed().as_secs_f32();
+    let elapsed = now.elapsed().as_millis();
 
     let bits_loaded_mb = 4; // 0.5MB
-    return Ok(bits_loaded_mb as f32 / elapsed);
+    return Ok(bits_loaded_mb as f64 * 1000 as f64 / elapsed as f64);
+}
+
+#[cfg(target_arch = "wasm32")]
+pub async fn speed_test_wasm(hostname: &str) -> Result<f64, surf::Error> {
+    let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+
+    let b = Date::now();
+    let _ = client.recv_bytes(request).await;
+    let e = Date::now();
+    let elapsed = e-b;
+
+    let bits_loaded_mb = 4; // 0.5MB
+    return Ok(bits_loaded_mb as f64 * 1000 as f64 / elapsed as f64);
 }
 
 
@@ -295,8 +316,12 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
+    #[cfg(target_arch = "wasm32")]
+    let speed_test_fn = speed_test_wasm;
     #[cfg(not(target_arch = "wasm32"))]
-    match speed_test(hostname.as_str()).await {
+    let speed_test_fn = speed_test;
+
+    match speed_test_fn(hostname.as_str()).await {
         Ok(res) => {
             o.request.bandwidth_mbps = res;
         },

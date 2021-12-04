@@ -68,7 +68,7 @@ fn main(req: Request) -> Result<Response, Error> {
             .with_content_type(file_mimetype(filename, mime::APPLICATION_JSON)));
     }
 
-    if filename == "api/speedtest" {
+    if filename == "api/speed_test" {
         let o = "b".repeat(500*1024);
         return Ok(Response::from_status(StatusCode::OK)
             .with_body_bytes(o.to_string().as_bytes())

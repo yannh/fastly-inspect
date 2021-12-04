@@ -9,7 +9,9 @@ var app = new Vue({
             geoip: {},
             popLatency: {},
             popAssignments: {},
-            request: {},
+            request: {
+                bandwidth_mbps: 0.0,
+            },
         },
     },
     filters: {

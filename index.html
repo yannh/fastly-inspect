@@ -232,7 +232,7 @@ th {
         </tr>
         <tr>
           <th>BW to server</th>
-          <td>{{ fastly_inspect.request.bandwidth_mbps }}</td>
+          <td>{{ fastly_inspect.request.bandwidth_mbps.toFixed(2) }} mbps</td>
         </tr>
         <tr>
           <th>Congestion Window</th>
