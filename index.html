@@ -231,6 +231,10 @@ th {
           <td>{{ fastly_inspect.popAssignments.as }}</td>
         </tr>
         <tr>
+          <th>BW to server</th>
+          <td>{{ fastly_inspect.request.bandwidth_mbps }}</td>
+        </tr>
+        <tr>
           <th>Congestion Window</th>
           <td>{{ fastly_inspect.request.cwnd }}</td>
         </tr>

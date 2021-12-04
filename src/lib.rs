@@ -11,7 +11,6 @@ use std::time::{Instant};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugInfo {
     pub dns_resolver_info: DnsResolverInfo,
@@ -171,20 +170,21 @@ pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
     Ok(client.recv_json(request).await?)
 }
 
-//pub async fn speed_test(hostname: &str) -> Result<f32, surf::Error> {
-//    let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
-//    let client = surf::Client::new();
-//    let request = surf::Request::builder(Method::Get, url.clone())
-//        .header("Accept", "application/json")
-//        .header("Content-type", "text/plain")
-//        .build();
-//    let now = Instant::now();
-//    let _ = client.recv_bytes(request).await;
-//    let elapsed = now.elapsed().as_millis();
-//
-//    let bits_loaded = 500 * 1024 * 8;
-//    return Ok(bits_loaded as f32 / elapsed as f32);
-//}
+#[cfg(not(target_arch = "wasm32"))]
+pub async fn speed_test(hostname: &str) -> Result<f32, surf::Error> {
+    let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+    let now = Instant::now();
+    let _ = client.recv_bytes(request).await;
+    let elapsed = now.elapsed().as_secs_f32();
+
+    let bits_loaded_mb = 4; // 0.5MB
+    return Ok(bits_loaded_mb as f32 / elapsed);
+}
 
 
 pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
@@ -295,12 +295,13 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
-//    match speed_test(hostname.as_str()).await {
-//        Ok(res) => {
-//            o.request.bandwidth_mbps = res;
-//        },
-//        Err(e) => return Err(e),
-//    };
+    #[cfg(not(target_arch = "wasm32"))]
+    match speed_test(hostname.as_str()).await {
+        Ok(res) => {
+            o.request.bandwidth_mbps = res;
+        },
+        Err(e) => return Err(e),
+    };
 
     match debug_resolver().await {
         Ok(res) => {

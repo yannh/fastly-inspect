@@ -53,7 +53,7 @@ fn main() {
         }
     };
 
-    match block_on(fastly_inspect(String::from("https://fastly-inspect.edgecompute.app/"))) {
+    match block_on(fastly_inspect(String::from("http://127.0.0.1:7676/"))) {
         Ok(res) => {
             fi = res;
         }
