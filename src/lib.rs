@@ -13,6 +13,8 @@ use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
 
+static USER_AGENT: &str = "Fastly-Inspect v0.1.0";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugInfo {
     pub dns_resolver_info: DnsResolverInfo,
@@ -175,6 +177,7 @@ pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
         .header("Content-type", "text/plain")
+        .header("User-Agent", USER_AGENT)
         .build();
     Ok(client.recv_json(request).await?)
 }
@@ -358,7 +361,6 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         },
         Err(e) => return Err(e),
     };
-
 
     #[cfg(target_arch = "wasm32")]
     let speed_test_fn = speed_test_wasm;
