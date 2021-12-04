@@ -52,7 +52,7 @@ fn main(req: Request) -> Result<Response, Error> {
     const DEFAULT_MIMETYPE: mime::Mime = mime::APPLICATION_OCTET_STREAM;
     let mut filename = req.get_path().trim_start_matches("/");
 
-    if filename == "req_infos" {
+    if filename == "api/req_infos" {
         let o = json! ({
             "accept": req.get_header_str(header::ACCEPT).unwrap_or(""),
             "accept_language": req.get_header_str(header::ACCEPT_LANGUAGE).unwrap_or(""),
@@ -68,9 +68,17 @@ fn main(req: Request) -> Result<Response, Error> {
             .with_content_type(file_mimetype(filename, mime::APPLICATION_JSON)));
     }
 
+    if filename == "api/speedtest" {
+        let o = "b".repeat(500*1024);
+        return Ok(Response::from_status(StatusCode::OK)
+            .with_body_bytes(o.to_string().as_bytes())
+            .with_content_type(file_mimetype(filename, mime::APPLICATION_JSON)));
+    }
+
     if filename == "" {
         filename = "index.html";
     }
+
     match Asset::get(filename) {
         Some(asset) => Ok(Response::from_status(StatusCode::OK)
             .with_body_bytes(asset.data.as_ref())

@@ -158,7 +158,7 @@ pub async fn req_infos_legacy(hostname: String) -> Result<ReqInfosLegacy, surf::
 }
 
 pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
-    let url = Url::parse(&*format!("{}/req_infos", hostname))?;
+    let url = Url::parse(&*format!("{}/api/req_infos", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
