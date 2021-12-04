@@ -113,6 +113,13 @@ pub struct FastlyInspectRequest {
     pub total_retrans: u32
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FastlyInspectPopAs {
+    pub popname: String,
+    pub hostname: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FastlyInspectPopAssignments {
     pub ac: String,
@@ -230,6 +237,28 @@ pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
     }
 }
 
+pub async fn pop_as(w: &str) -> Result<FastlyInspectPopAs, surf::Error> {
+    let url = Url::parse(&*format!("https://{}.fastly-analytics.com/popname.js?jsonp=removeme&unique=16365577309317k96lvao-perfmap", w))?;
+    let client = surf::Client::new();
+    let request = surf::Request::builder(Method::Get, url.clone())
+        .header("Accept", "application/json")
+        .header("Content-type", "text/plain")
+        .build();
+
+    let b = client.recv_bytes(request).await?;
+    let mut res: String = b.iter().map(|&c| c as char).collect();
+
+    let offset = res.find('\n').unwrap_or(res.len());
+    res.replace_range(..offset, "");
+    res.pop();
+    res.pop();
+    res = res.replace("'", "\"");
+    match serde_json::from_str(&*res) {
+        Ok(r) => Ok(r),
+        Err(e) => Err(surf::Error::from_str(surf::StatusCode::Accepted, format!("{} : {}", e, res))),
+    }
+}
+
 pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Error> {
     let popl: HashMap<String, u16> = HashMap::new();
     let mut o = FastlyInspect{
@@ -315,6 +344,21 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         },
         Err(e) => return Err(e),
     };
+
+    match pop_as("ac").await {
+        Ok(res) => {
+            o.pop_assignments.ac = res.popname;
+        },
+        Err(e) => return Err(e),
+    };
+
+    match pop_as("as").await {
+        Ok(res) => {
+            o.pop_assignments.popas = res.popname;
+        },
+        Err(e) => return Err(e),
+    };
+
 
     #[cfg(target_arch = "wasm32")]
     let speed_test_fn = speed_test_wasm;

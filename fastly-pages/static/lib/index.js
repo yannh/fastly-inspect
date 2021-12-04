@@ -8,7 +8,10 @@ var app = new Vue({
         fastly_inspect: {
             geoip: {},
             popLatency: {},
-            popAssignments: {},
+            popAssignments: {
+                ac: "",
+                as: "",
+            },
             request: {
                 bandwidth_mbps: 0.0,
             },
@@ -46,15 +49,20 @@ const runWasm = async () => {
         while (pl.length) {
             await Promise.all(pl.splice(0, 2).map(async pop => { // Only 2 requests at a time, to not skew the timings
                 const url = `https://${pop[0]}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId=${pop[0]}`;
-                await fetch(url).then(_ => {
+                await fetch(url).then(res => {
                     if (performance === undefined) {
                         return;
                     }
+
+                    // Avoid garbage collection under chrome
+                    // https://github.com/whatwg/fetch/issues/810
+                    res.clone();
+
                     setTimeout(function() { // There seems to be a small race condition until the timings are available
                         const resources = performance.getEntriesByType("resource");
                         const pop_timings = resources.find(r => r.name === url);
                         // TTFB, minus TCP & SSL negociation
-                        app.fastly_inspect.popLatency[pop[0]] = pop_timings.responseStart - pop_timings.requestStart;
+                        app.fastly_inspect.popLatency[pop[0]] = Math.round(pop_timings.responseStart - pop_timings.requestStart);
                     }, 1000);
                 })
             }));
