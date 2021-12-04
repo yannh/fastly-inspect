@@ -51,6 +51,7 @@ const runWasm = async () => {
                     setTimeout(function() { // There seems to be a small race condition until the timings are available
                         const resources = performance.getEntriesByType("resource");
                         const pop_timings = resources.find(r => r.name === url);
+                        // TTFB, minus TCP & SSL negociation
                         app.fastly_inspect.popLatency[pop[0]] = pop_timings.responseStart - pop_timings.requestStart;
                     }, 1000);
                 })

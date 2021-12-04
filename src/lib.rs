@@ -1,12 +1,16 @@
 use serde::{Deserialize, Serialize};
 use surf::http::{Method, Url};
-use std::time::{SystemTime, UNIX_EPOCH};
-use rand::{thread_rng,Rng};
-use rand::distributions::Alphanumeric;
+//use rand::{thread_rng,Rng};
+//use rand::distributions::Alphanumeric;
 use std::collections::HashMap;
+
+
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::{Instant};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DebugInfo {
@@ -100,7 +104,7 @@ pub struct FastlyInspectRequest {
     pub fastlyserverip: String,
     pub xff: String,
     pub datacenter: String,
-    pub bandwidth_mbps: String,
+    pub bandwidth_mbps: f32,
     pub cwnd: u32,
     pub nexthop: String,
     pub rtt: u32,
@@ -125,15 +129,15 @@ pub struct FastlyInspect {
     pub pop_assignments: FastlyInspectPopAssignments,
 }
 
-fn gen_perfmaphost() -> String {
-    let rand_string: String = thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(30)
-        .map(char::from)
-        .collect();
-
-    return format!("{}-perfmap", rand_string);
-}
+//fn gen_perfmaphost() -> String {
+//    let rand_string: String = thread_rng()
+//        .sample_iter(&Alphanumeric)
+//        .take(30)
+//        .map(char::from)
+//        .collect();
+//
+//    return format!("{}-perfmap", rand_string);
+//}
 
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
@@ -157,7 +161,7 @@ pub async fn req_infos_legacy(hostname: String) -> Result<ReqInfosLegacy, surf::
     Ok(client.recv_json(request).await?)
 }
 
-pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
+pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
     let url = Url::parse(&*format!("{}/api/req_infos", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
@@ -166,6 +170,22 @@ pub async fn req_infos(hostname: String) -> Result<ReqInfos, surf::Error> {
         .build();
     Ok(client.recv_json(request).await?)
 }
+
+//pub async fn speed_test(hostname: &str) -> Result<f32, surf::Error> {
+//    let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
+//    let client = surf::Client::new();
+//    let request = surf::Request::builder(Method::Get, url.clone())
+//        .header("Accept", "application/json")
+//        .header("Content-type", "text/plain")
+//        .build();
+//    let now = Instant::now();
+//    let _ = client.recv_bytes(request).await;
+//    let elapsed = now.elapsed().as_millis();
+//
+//    let bits_loaded = 500 * 1024 * 8;
+//    return Ok(bits_loaded as f32 / elapsed as f32);
+//}
+
 
 pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
     let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", "16365577309317k96lvao-perfmap"))?;
@@ -230,7 +250,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
             fastlyserverip: String::from(""),
             xff: String::from(""),
             datacenter: String::from(""),
-            bandwidth_mbps: String::from(""),
+            bandwidth_mbps: 0.0,
             cwnd: 0,
             nexthop: String::from(""),
             rtt: 0,
@@ -250,7 +270,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
-    match req_infos(hostname).await {
+    match req_infos(hostname.as_str()).await {
         Ok(res) => {
             o.pop_assignments.popas = res.pop;
 
@@ -275,6 +295,13 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
+//    match speed_test(hostname.as_str()).await {
+//        Ok(res) => {
+//            o.request.bandwidth_mbps = res;
+//        },
+//        Err(e) => return Err(e),
+//    };
+
     match debug_resolver().await {
         Ok(res) => {
             o.request.client_ip = res.client_ip_info.ip;
@@ -287,7 +314,6 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         },
         Err(e) => return Err(e),
     };
-
     return Ok(o);
 }
 

@@ -44,7 +44,7 @@ fn main() {
             fastlyserverip: String::from(""),
             xff: String::from(""),
             datacenter: String::from(""),
-            bandwidth_mbps: String::from(""),
+            bandwidth_mbps: 0.0,
             cwnd: 0,
             nexthop: String::from(""),
             rtt: 0,
