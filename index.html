@@ -287,16 +287,12 @@ th {
           <td>{{ fastly_inspect.request.host }}</td>
         </tr>
         <tr>
-          <th>User-Agent</th>
-          <td>{{ fastly_inspect.request.useragent }}</td>
-        </tr>
-        <tr>
-          <th>Forwarded-For</th>
-          <td>{{ fastly_inspect.request.xff }}</td>
-        </tr>
-        <tr>
           <th>Accept</th>
           <td>{{ fastly_inspect.request.accept }}</td>
+        </tr>
+        <tr>
+          <th>User-Agent</th>
+          <td>{{ fastly_inspect.request.useragent }}</td>
         </tr>
         <tr>
           <th>Accept-Language</th>
@@ -305,6 +301,10 @@ th {
         <tr>
           <th>Accept-Encoding</th>
           <td>{{ fastly_inspect.request.acceptencoding }}</td>
+        </tr>
+        <tr>
+          <th>X-Forwarded-For</th>
+          <td>{{ fastly_inspect.request.xff }}</td>
         </tr>
       </table>
     </div>
