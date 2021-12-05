@@ -280,7 +280,7 @@ th {
         </tr>
         <tr>
           <th>Time</th>
-          <td>{{ fastly_inspect.request.time }}</td>
+          <td>{{ fastly_inspect.request.time | formatDateTime }}</td>
         </tr>
         <tr>
           <th>Host</th>

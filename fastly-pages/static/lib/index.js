@@ -19,17 +19,21 @@ var app = new Vue({
     },
     filters: {
         capitalize: function (value) {
-            if (!value) return ''
-            value = value.toString()
-            return value.charAt(0).toUpperCase() + value.slice(1)
+            if (!value) return '';
+            value = value.toString();
+            return value.charAt(0).toUpperCase() + value.slice(1);
         },
         base64: function (s) {
             return btoa(JSON.stringify(s, null, 2));
         },
         sortHash: function (h) {
-            var resultHash = {}
-            Object.keys(h).sort().forEach(k => resultHash[k]=h[k])
+            var resultHash = {};
+            Object.keys(h).sort().forEach(k => resultHash[k]=h[k]);
             return resultHash;
+        },
+        formatDateTime: function (t) {
+            if (!t) return '';
+            return new Date(t).toLocaleString();
         }
     },
     methods: {
