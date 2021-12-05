@@ -86,7 +86,6 @@ pub struct ReqInfosLegacy {
     pub total_retrans: u32
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FastlyInspectRequest {
     pub resolver_ip: String,
@@ -112,7 +111,6 @@ pub struct FastlyInspectRequest {
     pub delta_retrans: u32,
     pub total_retrans: u32
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FastlyInspectPopAs {
@@ -365,7 +363,8 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
 
     match pop_as("as").await {
         Ok(res) => {
-            o.pop_assignments.popas = res.popname;
+            o.pop_assignments.popas = res.popname.clone();
+            o.request.datacenter = res.popname;
         },
         Err(e) => return Err(e),
     };
