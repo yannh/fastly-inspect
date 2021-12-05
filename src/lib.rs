@@ -3,6 +3,7 @@ use surf::http::{Method, Url};
 //use rand::{thread_rng,Rng};
 //use rand::distributions::Alphanumeric;
 use std::collections::HashMap;
+use futures::{future::FutureExt, pin_mut, select};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::{Instant};
@@ -315,19 +316,98 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
         }
     };
 
-    match perf_map_config().await {
-        Ok(res) => {
-            o.geoip = res.geo_ip;
-            for pop in res.pops.iter() {
-                o.pop_latency.insert(pop.pop_id.clone(), 0);
-            }
-
-        },
-        Err(e) => return Err(e),
-    };
-
     let client = surf::Client::new();
+    let perf_map_config_future =  perf_map_config().fuse();
+    let req_infos_future = req_infos(&client, hostname.as_str()).fuse();
+    let req_infos_legacy_future = req_infos_legacy(hostname_helper.as_str()).fuse();
+    let debug_resolver_future = debug_resolver().fuse();
+    let pop_as_ac_future = pop_as("ac").fuse();
+    let pop_as_as_future = pop_as("ac").fuse();
 
+    pin_mut!(perf_map_config_future, req_infos_future, req_infos_legacy_future, debug_resolver_future, pop_as_ac_future, pop_as_as_future);
+
+    loop {
+        select! {
+            f = perf_map_config_future => {
+                match f {
+                    Ok (res) => {
+                        o.geoip = res.geo_ip;
+                        for pop in res.pops.iter() {
+                            o.pop_latency.insert(pop.pop_id.clone(), 0);
+                        }
+                    }
+                    Err (_) => println!("err"),
+                }
+            },
+
+            f = req_infos_future => {
+                match f {
+                    Ok (res) => {
+                        o.pop_assignments.popas = res.pop;
+                        o.request.time = res.time;
+                        o.request.accept = res.accept;
+                        o.request.acceptlanguage = res.accept_language;
+                        o.request.acceptencoding = res.accept_encoding;
+                        o.request.host = res.host;
+                        o.request.useragent = res.user_agent;
+                        o.request.xff = res.x_forwarded_for;
+                    }
+                    Err (_) => println!("err"),
+                }
+            },
+
+            f = req_infos_legacy_future => {
+                match f {
+                    Ok (res) => {
+                        o.request.cwnd = res.cwnd;
+                        o.request.delta_retrans = res.delta_retrans;
+                        o.request.nexthop = res.nexthop;
+                        o.request.total_retrans = res.total_retrans;
+                        o.request.rtt = res.rtt;
+                        o.request.client_ip = res.client_ip;
+                        o.request.client_as_name = res.client_as_name;
+                        o.request.client_as_number = res.client_as_number;
+                    }
+                    Err (_) => println!("err"),
+                }
+            },
+
+            f = debug_resolver_future => {
+                match f {
+                    Ok (res) => {
+                        o.request.resolver_ip = res.dns_resolver_info.ip;
+                        o.request.resolver_as_name = res.dns_resolver_info.as_name;
+                        o.request.resolver_as_number = res.dns_resolver_info.as_number;
+                        o.request.resolver_country_code = res.dns_resolver_info.cc;
+                    }
+                    Err (_) => println!("err"),
+                }
+            },
+
+            f = pop_as_ac_future => {
+                match f {
+                    Ok (res) => {
+                        o.pop_assignments.ac = res.popname;
+                    }
+                    Err (_) => println!("err"),
+                }
+            },
+
+            f = pop_as_as_future => {
+                match f {
+                    Ok (res) => {
+                        o.pop_assignments.popas = res.popname.clone();
+                        o.request.datacenter = res.popname;
+                    }
+                    Err (_) => println!("err"),
+                }
+            },
+
+            complete => break,
+        };
+    }
+
+    // Run this one separately, so it is not affected by other requests
     match speed_test(&client, hostname.as_str()).await {
         Ok(res) => {
             o.request.bandwidth_mbps = res;
@@ -335,59 +415,6 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
         Err(e) => return Err(e),
     };
 
-    match req_infos(&client, hostname.as_str()).await {
-        Ok(res) => {
-            o.pop_assignments.popas = res.pop;
-
-            o.request.time = res.time;
-            o.request.accept = res.accept;
-            o.request.acceptlanguage = res.accept_language;
-            o.request.acceptencoding = res.accept_encoding;
-            o.request.host = res.host;
-            o.request.useragent = res.user_agent;
-            o.request.xff = res.x_forwarded_for;
-        },
-        Err(e) => return Err(e),
-    };
-
-    match req_infos_legacy(hostname_helper.as_str()).await {
-        Ok(res) => {
-            o.request.cwnd = res.cwnd;
-            o.request.delta_retrans = res.delta_retrans;
-            o.request.nexthop = res.nexthop;
-            o.request.total_retrans = res.total_retrans;
-            o.request.rtt = res.rtt;
-            o.request.client_ip = res.client_ip;
-            o.request.client_as_name = res.client_as_name;
-            o.request.client_as_number = res.client_as_number;
-        },
-        Err(e) => return Err(e),
-    };
-
-    match pop_as("ac").await {
-        Ok(res) => {
-            o.pop_assignments.ac = res.popname;
-        },
-        Err(e) => return Err(e),
-    };
-
-    match pop_as("as").await {
-        Ok(res) => {
-            o.pop_assignments.popas = res.popname.clone();
-            o.request.datacenter = res.popname;
-        },
-        Err(e) => return Err(e),
-    };
-
-    match debug_resolver().await {
-        Ok(res) => {
-            o.request.resolver_ip = res.dns_resolver_info.ip;
-            o.request.resolver_as_name = res.dns_resolver_info.as_name;
-            o.request.resolver_as_number = res.dns_resolver_info.as_number;
-            o.request.resolver_country_code = res.dns_resolver_info.cc;
-        },
-        Err(e) => return Err(e),
-    };
     return Ok(o);
 }
 

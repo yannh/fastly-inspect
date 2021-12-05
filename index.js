@@ -46,7 +46,7 @@ var app = new Vue({
 const runWasm = async () => {
     await wasmInit("./lib/fastly_inspect_bg.wasm");
 
-    fastly_inspect_js(location.protocol + "//" + location.hostname + ":" + location.port, "https://fastly-helper.mandragor.org/").then(async res => {
+    fastly_inspect_js(location.protocol + "//" + location.hostname + ":" + location.port, "https://fastly-helper.mandragor.org").then(async res => {
         app.fastly_inspect = res;
 
         var pl = Object.entries(res.popLatency);

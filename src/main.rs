@@ -60,6 +60,7 @@ fn main() {
     match block_on(fastly_inspect(fi_url, fh_url)) {
         Ok(res) => {
             fi = res;
+            println!("fastly-inspect done");
         }
         Err(e) => eprintln!("{}", e),
     };
