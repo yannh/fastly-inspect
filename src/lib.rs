@@ -9,7 +9,6 @@ use std::time::{Instant};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
-
 #[cfg(target_arch = "wasm32")]
 use js_sys::Date;
 
@@ -209,9 +208,8 @@ pub async fn speed_test(client: &surf::Client, hostname: &str) -> Result<f64, su
 }
 
 #[cfg(target_arch = "wasm32")]
-pub async fn speed_test_wasm(hostname: &str) -> Result<f64, surf::Error> {
+pub async fn speed_test(client: &surf::Client, hostname: &str) -> Result<f64, surf::Error> {
     let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
-    let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
         .header("Content-type", "text/plain")
@@ -373,12 +371,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
-    #[cfg(target_arch = "wasm32")]
-    let speed_test_fn = speed_test_wasm;
-    #[cfg(not(target_arch = "wasm32"))]
-    let speed_test_fn = speed_test;
-
-    match speed_test_fn(&client, hostname.as_str()).await {
+    match speed_test(&client, hostname.as_str()).await {
         Ok(res) => {
             o.request.bandwidth_mbps = res;
         },
