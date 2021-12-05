@@ -75,6 +75,8 @@ pub struct ReqInfos {
     pub server: String,
     pub user_agent: String,
     pub x_forwarded_for: String,
+    #[serde(default)]
+    pub date: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -180,8 +182,15 @@ pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
     #[cfg(not(target_arch = "wasm32"))]
     let request = request.header("User-Agent", "Fastly-Inspect v0.1.0");
 
-    let request = request.build();
-    Ok(client.recv_json(request).await?)
+    let mut res = client.send(request.build()).await?;
+
+    let mut ri:ReqInfos = res.body_json().await?;
+    match res.header("date") {
+        Some(x) => ri.date = x.to_string(),
+        None => ri.date = String::from(""),
+    }
+
+    Ok(ri)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -329,6 +338,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Ok(res) => {
             o.pop_assignments.popas = res.pop;
 
+            o.request.time = res.date;
             o.request.accept = res.accept;
             o.request.acceptlanguage = res.accept_language;
             o.request.acceptencoding = res.accept_encoding;

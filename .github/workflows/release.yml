@@ -2,6 +2,8 @@ name: Main
 
 on:
   push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -59,3 +61,26 @@ jobs:
         with:
           command: build
           args: --release --all --locked --target=${{ matrix.rust_arch }}-${{ matrix.rust_abi }}
+
+      - name: Strip symbols (linux)
+        if: ${{ matrix.name == 'linux' }}
+        run: |
+          ${{ matrix.rust_arch }}-linux-gnu-strip target/${{ matrix.rust_arch }}-${{ matrix.rust_abi }}/release/fastly-inspect${{ matrix.extension }}
+
+      - name: Strip symbols (non-linux)
+        if: ${{ matrix.name != 'linux' }}
+        run: |
+          strip target/${{ matrix.rust_arch }}-${{ matrix.rust_abi }}/release/fastly-inspect${{ matrix.extension }}
+
+      - name: Package
+        run: |
+          cd target/${{ matrix.rust_arch }}-${{ matrix.rust_abi }}/release
+          tar czf fastly-inspect_${{ steps.tagName.outputs.tag }}_${{ matrix.name }}-${{ matrix.arch }}.tar.gz fastly-inspect${{ matrix.extension }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/${{ matrix.rust_arch }}-${{ matrix.rust_abi }}/release/fastly-inspect_${{ steps.tagName.outputs.tag }}_${{ matrix.name }}-${{ matrix.arch }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
