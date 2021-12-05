@@ -2,8 +2,6 @@ name: Main
 
 on:
   push:
-    tags:
-      - "v*.*.*"
 
 jobs:
   build:
@@ -11,13 +9,15 @@ jobs:
       matrix:
         rust-toolchain: [stable]
         os: [ubuntu-latest]
-        arch: [amd64]
+        arch: [amd64, arm64]
         include:
           - os: ubuntu-latest
             name: linux
             rust_abi: unknown-linux-gnu
           - arch: amd64
             rust_arch: x86_64
+          - arch: arm64
+            rust_arch: aarch64
 
     runs-on: ${{ matrix.os }}
     steps:
