@@ -165,7 +165,7 @@ pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
 
 // Get data from a VCL service for vars not yet available in compute
 pub async fn req_infos_legacy(hostname: &str) -> Result<ReqInfosLegacy, surf::Error> {
-    let url = Url::parse(&*format!("{}/qreq_infos", hostname))?;
+    let url = Url::parse(&*format!("{}/req_infos", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
