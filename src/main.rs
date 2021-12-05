@@ -55,8 +55,9 @@ fn main() {
     };
 
     let fi_url = env::var("FASTLY_INSPECT_URL").unwrap_or("https://fastly-inspect.edgecompute.app/".to_string());
+    let fh_url = env::var("FASTLY_HELPER_URL").unwrap_or("https://fastly-helper.mandragor.org/".to_string());
 
-    match block_on(fastly_inspect(fi_url)) {
+    match block_on(fastly_inspect(fi_url, fh_url)) {
         Ok(res) => {
             fi = res;
         }

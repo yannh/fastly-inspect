@@ -83,7 +83,14 @@ pub struct ReqInfosLegacy {
     pub nexthop: String,
     pub rtt: u32,
     pub delta_retrans: u32,
-    pub total_retrans: u32
+    pub total_retrans: u32,
+    pub client_ip: String,
+    pub client_as_name: String,
+    pub client_as_number: String,
+    pub city: String,
+    pub continent: String,
+    pub country: String,
+    pub region: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -258,7 +265,7 @@ pub async fn pop_as(w: &str) -> Result<FastlyInspectPopAs, surf::Error> {
     }
 }
 
-pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Error> {
+pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result<FastlyInspect, surf::Error> {
     let popl: HashMap<String, u16> = HashMap::new();
     let mut o = FastlyInspect{
         geoip: GeoIP {
@@ -343,13 +350,16 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
-    match req_infos_legacy("fastly-helper.mandragor.org").await {
+    match req_infos_legacy(hostname_helper.as_str()).await {
         Ok(res) => {
             o.request.cwnd = res.cwnd;
             o.request.delta_retrans = res.delta_retrans;
             o.request.nexthop = res.nexthop;
             o.request.total_retrans = res.total_retrans;
             o.request.rtt = res.rtt;
+            o.request.client_ip = res.client_ip;
+            o.request.client_as_name = res.client_as_name;
+            o.request.client_as_number = res.client_as_number;
         },
         Err(e) => return Err(e),
     };
@@ -371,9 +381,6 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
 
     match debug_resolver().await {
         Ok(res) => {
-            o.request.client_ip = res.client_ip_info.ip;
-            o.request.client_as_name = res.client_ip_info.as_name;
-            o.request.client_as_number = res.client_ip_info.as_number;
             o.request.resolver_ip = res.dns_resolver_info.ip;
             o.request.resolver_as_name = res.dns_resolver_info.as_name;
             o.request.resolver_as_number = res.dns_resolver_info.as_number;
@@ -386,8 +393,8 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 #[cfg(target_arch = "wasm32")]
-pub async fn fastly_inspect_js(hostname: String) -> Result<JsValue, JsValue> {
-    match fastly_inspect(hostname).await {
+pub async fn fastly_inspect_js(hostname: String, hostname_helper: String) -> Result<JsValue, JsValue> {
+    match fastly_inspect(hostname, hostname_helper).await {
         Ok(res) => return Ok(JsValue::from_serde(&res).unwrap()),
         Err(e) => return Err(JsValue::from(&*format!("error retrieving fastly_inspect: {}", e))),
     };

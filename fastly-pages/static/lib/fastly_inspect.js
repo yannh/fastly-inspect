@@ -212,12 +212,15 @@ function __wbg_adapter_29(arg0, arg1, arg2) {
 
 /**
 * @param {string} hostname
+* @param {string} hostname_helper
 * @returns {Promise<any>}
 */
-export function fastly_inspect_js(hostname) {
+export function fastly_inspect_js(hostname, hostname_helper) {
     var ptr0 = passStringToWasm0(hostname, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.fastly_inspect_js(ptr0, len0);
+    var ptr1 = passStringToWasm0(hostname_helper, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    var ret = wasm.fastly_inspect_js(ptr0, len0, ptr1, len1);
     return takeObject(ret);
 }
 
