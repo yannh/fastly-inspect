@@ -70,7 +70,7 @@ jobs:
         run: |
           cp LICENSE README.md target/${{ matrix.rust_arch }}-${{ matrix.rust_abi }}/release/
           cd target/${{ matrix.rust_arch }}-${{ matrix.rust_abi }}/release
-          tar czf LICENSE README.md fastly-inspect_${{ steps.tagName.outputs.tag }}_${{ matrix.name }}-${{ matrix.arch }}.tar.gz fastly-inspect${{ matrix.extension }}
+          tar czf fastly-inspect_${{ steps.tagName.outputs.tag }}_${{ matrix.name }}-${{ matrix.arch }}.tar.gz fastly-inspect${{ matrix.extension }} LICENSE README.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
