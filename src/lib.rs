@@ -322,6 +322,14 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
     };
 
     let client = surf::Client::new();
+
+    match speed_test(&client, hostname.as_str()).await {
+        Ok(res) => {
+            o.request.bandwidth_mbps = res;
+        },
+        Err(e) => return Err(e),
+    };
+
     match req_infos(&client, hostname.as_str()).await {
         Ok(res) => {
             o.pop_assignments.popas = res.pop;
@@ -358,13 +366,6 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
     match pop_as("as").await {
         Ok(res) => {
             o.pop_assignments.popas = res.popname;
-        },
-        Err(e) => return Err(e),
-    };
-
-    match speed_test(&client, hostname.as_str()).await {
-        Ok(res) => {
-            o.request.bandwidth_mbps = res;
         },
         Err(e) => return Err(e),
     };
