@@ -267,6 +267,9 @@ pub async fn pop_as(w: &str) -> Result<FastlyInspectPopAs, surf::Error> {
 }
 
 pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result<FastlyInspect, surf::Error> {
+    let hostname = hostname.trim_end_matches("/");
+    let hostname_helper = hostname_helper.trim_end_matches("/");
+
     let popl: HashMap<String, u16> = HashMap::new();
     let mut o = FastlyInspect{
         geoip: GeoIP {
@@ -318,8 +321,8 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
 
     let client = surf::Client::new();
     let perf_map_config_future =  perf_map_config().fuse();
-    let req_infos_future = req_infos(&client, hostname.as_str()).fuse();
-    let req_infos_legacy_future = req_infos_legacy(hostname_helper.as_str()).fuse();
+    let req_infos_future = req_infos(&client, hostname).fuse();
+    let req_infos_legacy_future = req_infos_legacy(hostname_helper).fuse();
     let debug_resolver_future = debug_resolver().fuse();
     let pop_as_ac_future = pop_as("ac").fuse();
     let pop_as_as_future = pop_as("ac").fuse();
@@ -408,7 +411,7 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
     }
 
     // Run this one separately, so it is not affected by other requests
-    match speed_test(&client, hostname.as_str()).await {
+    match speed_test(&client, hostname).await {
         Ok(res) => {
             o.request.bandwidth_mbps = res;
         },
