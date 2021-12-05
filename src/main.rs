@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use futures::executor::block_on;
 use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest, FastlyInspectPopAssignments};
 use ttfb::ttfb;
@@ -53,7 +54,9 @@ fn main() {
         }
     };
 
-    match block_on(fastly_inspect(String::from("https://fastly-inspect.edgecompute.app/"))) {
+    let fi_url = env::var("FASTLY_INSPECT_URL").unwrap_or("https://fastly-inspect.edgecompute.app/".to_string());
+
+    match block_on(fastly_inspect(fi_url)) {
         Ok(res) => {
             fi = res;
         }

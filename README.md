@@ -36,6 +36,9 @@ $ ./fastly-inspect
     [...]
 ```
 
+The URL of the supporting Fastly-Service API can be set with the `FASTLY_INSPECT_URL`
+environment variable (defaults to https://fastly-inspect.edgecompute.app/).
+
 ## How this works
 
 The fastly-inspect application ([src/main,rs](src/main.rs)) and the Fastly-inspect
