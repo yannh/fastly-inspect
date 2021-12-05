@@ -10,9 +10,9 @@ connectivity to Fastly's Network to help troubleshoot networking problems.
 
 It is a non-official, modern, free-software clone of
 [Fastly-debug.com](https://www.fastly-debug.com) that provides both:
- * A web application, as a WASM binary designed to run on
+ * A [web application](https://fastly-inspect.edgecompute.app), as a WASM binary designed to run on
    [Compute@Edge](https://docs.fastly.com/products/compute-at-edge).
- * A command-line tool, as a statically linked binary to run on your server.
+ * A [command-line tool](releases/), as a statically linked binary to run on your server.
 
 ### Demo
 #### Web Application
