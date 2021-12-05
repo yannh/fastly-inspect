@@ -74,7 +74,7 @@ pub struct ReqInfos {
     pub server: String,
     pub user_agent: String,
     pub x_forwarded_for: String,
-    pub date: String,
+    pub time: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -334,7 +334,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Ok(res) => {
             o.pop_assignments.popas = res.pop;
 
-            o.request.time = res.date;
+            o.request.time = res.time;
             o.request.accept = res.accept;
             o.request.acceptlanguage = res.accept_language;
             o.request.acceptencoding = res.accept_encoding;
