@@ -182,7 +182,7 @@ pub async fn req_infos(client: &surf::Client, hostname: &str) -> Result<ReqInfos
 
     // Set user-agent for CLI
     #[cfg(not(target_arch = "wasm32"))]
-    let request = request.header("User-Agent", "Fastly-Inspect v0.1.0");
+    let request = request.header("User-Agent", "Fastly-Inspect v0.1.2");
 
     Ok(client.recv_json(request.build()).await?)
 }
