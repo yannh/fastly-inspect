@@ -5,6 +5,7 @@ use fastly::{mime, Error, Request, Response};
 use rust_embed::RustEmbed;
 use std::ffi::OsStr;
 use serde_json::json;
+use chrono::prelude::*;
 
 #[derive(RustEmbed)]
 #[folder = "static/"]
@@ -62,6 +63,7 @@ fn main(req: Request) -> Result<Response, Error> {
             "x_forwarded_for": req.get_header_str(header::FORWARDED).unwrap_or(""),
             "pop": std::env::var("FASTLY_POP").unwrap_or(String::new()),
             "server": std::env::var("FASTLY_HOSTNAME").unwrap_or(String::new()),
+            "date": Utc::now(),
         });
         return Ok(Response::from_status(StatusCode::OK)
             .with_body_bytes(o.to_string().as_bytes())

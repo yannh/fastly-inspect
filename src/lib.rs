@@ -74,7 +74,6 @@ pub struct ReqInfos {
     pub server: String,
     pub user_agent: String,
     pub x_forwarded_for: String,
-    #[serde(default)]
     pub date: String,
 }
 
@@ -180,15 +179,7 @@ pub async fn req_infos(client: &surf::Client, hostname: &str) -> Result<ReqInfos
     #[cfg(not(target_arch = "wasm32"))]
     let request = request.header("User-Agent", "Fastly-Inspect v0.1.0");
 
-    let mut res = client.send(request.build()).await?;
-
-    let mut ri:ReqInfos = res.body_json().await?;
-    match res.header("date") {
-        Some(x) => ri.date = x.to_string(),
-        None => ri.date = String::from(""),
-    }
-
-    Ok(ri)
+    Ok(client.recv_json(request.build()).await?)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
