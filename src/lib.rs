@@ -161,7 +161,7 @@ pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
 
 
 // Get data from a VCL service for vars not yet available in compute
-pub async fn req_infos_legacy(hostname: String) -> Result<ReqInfosLegacy, surf::Error> {
+pub async fn req_infos_legacy(hostname: &str) -> Result<ReqInfosLegacy, surf::Error> {
     let url = Url::parse(&*format!("https://{}/req_infos", hostname))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
@@ -171,9 +171,8 @@ pub async fn req_infos_legacy(hostname: String) -> Result<ReqInfosLegacy, surf::
     Ok(client.recv_json(request).await?)
 }
 
-pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
+pub async fn req_infos(client: &surf::Client, hostname: &str) -> Result<ReqInfos, surf::Error> {
     let url = Url::parse(&*format!("{}/api/req_infos", hostname))?;
-    let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
         .header("Content-type", "text/plain");
@@ -194,9 +193,8 @@ pub async fn req_infos(hostname: &str) -> Result<ReqInfos, surf::Error> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub async fn speed_test(hostname: &str) -> Result<f64, surf::Error> {
+pub async fn speed_test(client: &surf::Client, hostname: &str) -> Result<f64, surf::Error> {
     let url = Url::parse(&*format!("{}/api/speed_test", hostname))?;
-    let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
         .header("Content-type", "text/plain")
@@ -334,7 +332,8 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
-    match req_infos(hostname.as_str()).await {
+    let client = surf::Client::new();
+    match req_infos(&client, hostname.as_str()).await {
         Ok(res) => {
             o.pop_assignments.popas = res.pop;
 
@@ -349,7 +348,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
         Err(e) => return Err(e),
     };
 
-    match req_infos_legacy(String::from("fastly-helper.mandragor.org")).await {
+    match req_infos_legacy("fastly-helper.mandragor.org").await {
         Ok(res) => {
             o.request.cwnd = res.cwnd;
             o.request.delta_retrans = res.delta_retrans;
@@ -379,7 +378,7 @@ pub async fn fastly_inspect(hostname: String) -> Result<FastlyInspect, surf::Err
     #[cfg(not(target_arch = "wasm32"))]
     let speed_test_fn = speed_test;
 
-    match speed_test_fn(hostname.as_str()).await {
+    match speed_test_fn(&client, hostname.as_str()).await {
         Ok(res) => {
             o.request.bandwidth_mbps = res;
         },
