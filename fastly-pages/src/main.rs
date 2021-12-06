@@ -6,6 +6,7 @@ use rust_embed::RustEmbed;
 use std::ffi::OsStr;
 use serde_json::json;
 use chrono::prelude::*;
+use base64::encode;
 
 #[derive(RustEmbed)]
 #[folder = "static/"]
@@ -77,16 +78,36 @@ fn main(req: Request) -> Result<Response, Error> {
             .with_content_type(file_mimetype(filename, mime::APPLICATION_JSON)));
     }
 
-    if filename == "" {
+    if filename == ""  || filename == "index.html" {
         filename = "index.html";
+        match Asset::get(filename) {
+            Some(asset) => {
+                let html = std::str::from_utf8(asset.data.as_ref()).unwrap();
+                let accept = req.get_header_str("Accept").unwrap_or("");
+                let acceptlanguage = req.get_header_str("Accept-Language").unwrap_or("");
+                let acceptencoding = req.get_header_str("Accept-Encoding").unwrap_or("");
+
+                let html = html.replace("%BROWSERINFO%", &*encode(json!({
+                    "accept": accept,
+                    "acceptlanguage": acceptlanguage,
+                    "acceptencoding": acceptencoding}).to_string()));
+
+                return Ok(Response::from_status(StatusCode::OK)
+                    .with_body_bytes(&html.as_bytes())
+                    .with_content_type(file_mimetype(filename, DEFAULT_MIMETYPE)))
+            },
+
+            None => return Ok(Response::from_status(StatusCode::NOT_FOUND)
+                .with_body_text_plain(&*format!("404 error, {} not found!", req.get_path()))),
+        }
     }
 
     match Asset::get(filename) {
-        Some(asset) => Ok(Response::from_status(StatusCode::OK)
+        Some(asset) => return Ok(Response::from_status(StatusCode::OK)
             .with_body_bytes(asset.data.as_ref())
             .with_content_type(file_mimetype(filename, DEFAULT_MIMETYPE))),
 
-        None => Ok(Response::from_status(StatusCode::NOT_FOUND)
+        None => return Ok(Response::from_status(StatusCode::NOT_FOUND)
             .with_body_text_plain(&*format!("404 error, {} not found!", req.get_path()))),
     }
 }

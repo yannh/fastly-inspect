@@ -49,6 +49,12 @@ const runWasm = async () => {
     fastly_inspect_js(location.protocol + "//" + location.hostname + ":" + location.port, "https://fastly-helper.mandragor.org").then(async res => {
         app.fastly_inspect = res;
 
+        var browserinfo = JSON.parse(atob(document.getElementById("indexjs").getAttribute("data-browserinfo")));
+        console.log(JSON.stringify(browserinfo));
+        app.fastly_inspect.request.accept = browserinfo.accept;
+        app.fastly_inspect.request.acceptlanguage = browserinfo.acceptlanguage;
+        app.fastly_inspect.request.acceptencoding = browserinfo.acceptencoding;
+
         var pl = Object.entries(res.popLatency);
         while (pl.length) {
             await Promise.all(pl.splice(0, 2).map(async pop => { // Only 2 requests at a time, to not skew the timings
