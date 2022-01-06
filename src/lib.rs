@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use surf::http::{Method, Url};
-//use rand::{thread_rng,Rng};
-//use rand::distributions::Alphanumeric;
+use rand::{thread_rng,Rng};
+use rand::prelude::Distribution;
 use std::collections::HashMap;
 use futures::{future::FutureExt, pin_mut, select};
 
@@ -143,15 +143,44 @@ pub struct FastlyInspect {
     pub pop_assignments: FastlyInspectPopAssignments,
 }
 
-//fn gen_perfmaphost() -> String {
-//    let rand_string: String = thread_rng()
-//        .sample_iter(&Alphanumeric)
-//        .take(30)
-//        .map(char::from)
-//        .collect();
-//
-//    return format!("{}-perfmap", rand_string);
-//}
+
+// This is a copy of Alphanumeric but with only [a-z0-9]
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
+pub struct LowerCaseAlphanumeric;
+impl Distribution<u8> for LowerCaseAlphanumeric {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> u8 {
+        const RANGE: u32 = 26 + 10;
+        const GEN_ASCII_STR_CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz\
+                0123456789";
+        loop {
+            let var = rng.next_u32() >> (32 - 6);
+            if var < RANGE {
+                return GEN_ASCII_STR_CHARSET[var as usize];
+            }
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl DistString for LowerCaseAlphanumeric {
+    fn append_string<R: Rng + ?Sized>(&self, rng: &mut R, string: &mut String, len: usize) {
+        unsafe {
+            let v = string.as_mut_vec();
+            v.extend(self.sample_iter(rng).take(len));
+        }
+    }
+}
+
+fn gen_perfmaphost() -> String {
+    let rand_string: String = thread_rng()
+        .sample_iter(&LowerCaseAlphanumeric)
+        .take(21)
+        .map(char::from)
+        .collect();
+
+    return format!("{}{}-perfmap", chrono::offset::Utc::now(), rand_string);
+}
 
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
     let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
@@ -223,7 +252,7 @@ pub async fn speed_test(client: &surf::Client, hostname: &str) -> Result<f64, su
 
 
 pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
-    let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", "16365577309317k96lvao-perfmap"))?;
+    let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", "123456789"))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
