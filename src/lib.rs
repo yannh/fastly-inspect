@@ -401,7 +401,7 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
                         o.request.useragent = res.user_agent;
                         o.request.xff = res.x_forwarded_for;
                     }
-                    Err (_) => println!("err"),
+                    Err (_) => (),
                 }
             },
 
@@ -417,7 +417,7 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
                         o.request.client_as_name = res.client_as_name;
                         o.request.client_as_number = res.client_as_number;
                     }
-                    Err (_) => println!("err"),
+                    Err (_) => (),
                 }
             },
 
@@ -429,7 +429,7 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
                         o.request.resolver_as_number = res.dns_resolver_info.as_number;
                         o.request.resolver_country_code = res.dns_resolver_info.cc;
                     }
-                    Err (_) => println!("err"),
+                    Err (_) => (),
                 }
             },
 
@@ -438,7 +438,7 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
                     Ok (res) => {
                         o.pop_assignments.ac = res.popname;
                     }
-                    Err (_) => println!("err"),
+                    Err (_) => (),
                 }
             },
 
@@ -448,7 +448,7 @@ pub async fn fastly_inspect(hostname: String, hostname_helper: String) -> Result
                         o.pop_assignments.popas = res.popname.clone();
                         o.request.datacenter = res.popname;
                     }
-                    Err (_) => println!("err"),
+                    Err (_) => (),
                 }
             },
 
