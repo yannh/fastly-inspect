@@ -172,7 +172,7 @@ impl DistString for LowerCaseAlphanumeric {
     }
 }
 
-fn gen_perfmaphost() -> String {
+fn gen_perfmapuid() -> String {
     let rand_string: String = thread_rng()
         .sample_iter(&LowerCaseAlphanumeric)
         .take(8)
@@ -185,8 +185,21 @@ fn gen_perfmaphost() -> String {
     return format!("{}{}{}-perfmap", ts, ms, rand_string);
 }
 
+fn gen_debug_resolver_host() -> String {
+    let rand_string: String = thread_rng()
+        .sample_iter(&LowerCaseAlphanumeric)
+        .take(7)
+        .map(char::from)
+        .collect();
+    let dt = chrono::offset::Utc::now();
+    let ts = dt.timestamp();
+    let ms = dt.timestamp_subsec_millis() % 1000;
+
+    return format!("{}{}-{}-9z.u.fastly-analytics.com", ts, ms, rand_string);
+}
+
 pub async fn debug_resolver() -> Result<DebugInfo, surf::Error> {
-    let url = Url::parse("https://1636492611342-jn6tpar-9z.u.fastly-analytics.com/debug_resolver")?;
+    let url = Url::parse(&*format!("https://{}/debug_resolver", gen_debug_resolver_host()))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")
@@ -255,8 +268,8 @@ pub async fn speed_test(client: &surf::Client, hostname: &str) -> Result<f64, su
 
 
 pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
-    let dyn_host = gen_perfmaphost();
-    let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", dyn_host))?;
+    let perfmap_uid = gen_perfmapuid();
+    let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", perfmap_uid))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())
         .header("Accept", "application/json")

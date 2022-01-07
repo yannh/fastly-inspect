@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 use std::env;
 use futures::executor::block_on;
-use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest, FastlyInspectPopAssignments};
+use fastly_inspect::{fastly_inspect, FastlyInspect, GeoIP, FastlyInspectRequest, FastlyInspectPopAssignments, gen_perfmap_uid};
 use ttfb::ttfb;
 
 fn main() {
     let popl: HashMap<String, u16> = HashMap::new();
+
     let mut fi = FastlyInspect{
         geoip: GeoIP {
             ci: String::from(""),
@@ -65,8 +66,9 @@ fn main() {
     };
 
     // TTFB measurements - implemented here, the Web version relies on the Web Performance API
+    let perfmap_uid = gen_perfmap_uid();
     for (pop, popl) in fi.pop_latency.iter_mut() {
-        let url = format!("https://{}.pops.fastly-analytics.com/test_object.svg?unique=1636811062430p1v53fsd-perfmap&popId={}", pop, pop);
+        let url = format!("https://{}.pops.fastly-analytics.com/test_object.svg?unique={}&popId={}", pop, perfmap_uid, pop);
         match ttfb(url, false) {
             Ok(l) =>  *popl = l.http_ttfb_duration_rel().as_millis() as u16,
             Err (e) =>  eprintln!("{}", e),
