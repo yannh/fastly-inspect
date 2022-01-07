@@ -172,7 +172,7 @@ impl DistString for LowerCaseAlphanumeric {
     }
 }
 
-fn gen_perfmapuid() -> String {
+pub fn gen_perfmap_uid() -> String {
     let rand_string: String = thread_rng()
         .sample_iter(&LowerCaseAlphanumeric)
         .take(8)
@@ -268,7 +268,7 @@ pub async fn speed_test(client: &surf::Client, hostname: &str) -> Result<f64, su
 
 
 pub async fn perf_map_config() -> Result<PerfMapConfig, surf::Error> {
-    let perfmap_uid = gen_perfmapuid();
+    let perfmap_uid = gen_perfmap_uid();
     let url = Url::parse(&*format!("https://{}.u.fastly-analytics.com/perfmapconfig.js?jsonp=removeme", perfmap_uid))?;
     let client = surf::Client::new();
     let request = surf::Request::builder(Method::Get, url.clone())

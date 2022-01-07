@@ -1,11 +1,6 @@
 # Fastly-inspect
 
-*This is alpha-level software, some measurements are currently imprecise or
-incorrect. Comments, suggestions, feedback are encouraged, however since the
-code is in very early phase, please discuss any contribution with me
-beforehand. Thanks!*
-
-Fastly-inspect collects information about your internet connection and 
+[Fastly-inspect](https://fastly-inspect.edgecompute.app/) collects information about your internet connection and
 connectivity to Fastly's Network to help troubleshoot networking problems.
 
 It is a non-official, modern, free-software clone of
